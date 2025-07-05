@@ -9,7 +9,7 @@ const ButtonBack = () => {
       onClick={() => navigate(-1)}
       className="ml-10 mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition duration-300"
     >
-      ← Volver atrás aa
+      ← Volver atrás
     </button>
   );
 };
