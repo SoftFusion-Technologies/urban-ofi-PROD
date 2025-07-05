@@ -28,7 +28,7 @@ export default function RegistroRM({ studentId, onClose }) {
           return;
         }
         
-        const res = await axios.get('http://localhost:8080/api/ejercicios');
+        const res = await axios.get('https://vps-5097245-x.dattaweb.com/api/ejercicios');
         setEjercicios(res.data); // Suponiendo que es un array de strings
       } catch (err) {
         console.warn(
@@ -70,7 +70,7 @@ export default function RegistroRM({ studentId, onClose }) {
       setLoading(true);
 
       try {
-        const res = await axios.post('http://localhost:8080/student-rm', {
+        const res = await axios.post('https://vps-5097245-x.dattaweb.com/student-rm', {
           student_id: studentId,
           ...values,
           comentario: values.comentario.trim() || null

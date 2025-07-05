@@ -40,7 +40,7 @@ function ProgresoCard({ progreso }) {
   const handleSave = async () => {
     try {
       console.log('ID para actualizar:', progresoId);
-      await axios.put(`http://localhost:8080/student-progress/${progresoId}`, {
+      await axios.put(`https://vps-5097245-x.dattaweb.com/student-progress/${progresoId}`, {
         peso: parseFloat(formData.peso),
         altura_cm: formData.altura
           ? parseFloat(formData.altura).toFixed(2)
@@ -198,7 +198,7 @@ export default function CardProgreso({ studentId }) {
         const anioActual = fechaActual.getFullYear();
 
         const res = await fetch(
-          `http://localhost:8080/students/${studentId}/progress-comparison?mes=${mesActual}&anio=${anioActual}`
+          `https://vps-5097245-x.dattaweb.com/students/${studentId}/progress-comparison?mes=${mesActual}&anio=${anioActual}`
         );
         if (!res.ok) throw new Error('Error al cargar progreso');
         const data = await res.json();

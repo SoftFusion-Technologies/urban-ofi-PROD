@@ -15,7 +15,7 @@ export default function StudentGoalsProgress({ studentId }) {
     async function fetchData() {
       try {
         const res = await fetch(
-          `http://localhost:8080/students/${studentId}/progress`
+          `https://vps-5097245-x.dattaweb.com/students/${studentId}/progress`
         );
         const json = await res.json();
         setData(json);

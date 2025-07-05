@@ -67,8 +67,8 @@ const FormAltaUser = ({ isOpen, onClose, user, setSelectedUser }) => {
       } else {
         // (NUEVO)
         const url = user
-          ? `http://localhost:8080/users/${user.id}`
-          : 'http://localhost:8080/users/';
+          ? `https://vps-5097245-x.dattaweb.com/users/${user.id}`
+          : 'https://vps-5097245-x.dattaweb.com/users/';
         const method = user ? 'PUT' : 'POST';
 
         const respuesta = await fetch(url, {

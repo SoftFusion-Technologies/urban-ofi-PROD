@@ -36,7 +36,7 @@ function RutinasConDuracion({ studentId }) {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [rutinaFeedbackId, setRutinaFeedbackId] = useState(null);
 
-  const URL = 'http://localhost:8080/routines';
+  const URL = 'https://vps-5097245-x.dattaweb.com/routines';
 
   // GLOBALES PARA GESTIONAR LOS MODALES DE ERROR
   const [modalVisible, setModalVisible] = useState(false);
@@ -347,7 +347,7 @@ function RutinasConDuracion({ studentId }) {
     try {
       const mensaje = `El alumno ${nomyape} necesita ayuda con ${exerciseName}`;
       const response = await axios.post(
-        `http://localhost:8080/routine_requests`,
+        `https://vps-5097245-x.dattaweb.com/routine_requests`,
         {
           student_id: studentId,
           routine_id: routineId,

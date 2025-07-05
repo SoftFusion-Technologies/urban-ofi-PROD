@@ -6,7 +6,7 @@ const FormularioTransformacion = () => {
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const URL = 'http://localhost:8080/leads';
+  const URL = 'https://vps-5097245-x.dattaweb.com/leads';
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));

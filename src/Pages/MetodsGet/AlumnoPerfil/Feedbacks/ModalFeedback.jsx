@@ -20,7 +20,7 @@ export default function ModalFeedback({
       setShowModal(true);
 
       // Obtener nombre del alumno
-      fetch(`http://localhost:8080/students/${studentId}`)
+      fetch(`https://vps-5097245-x.dattaweb.com/students/${studentId}`)
         .then((res) => {
           if (!res.ok) throw new Error('No se pudo obtener el alumno');
           return res.json();
@@ -50,7 +50,7 @@ export default function ModalFeedback({
     setSuccess(null);
 
     try {
-      const response = await fetch('http://localhost:8080/routine-feedback', {
+      const response = await fetch('https://vps-5097245-x.dattaweb.com/routine-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

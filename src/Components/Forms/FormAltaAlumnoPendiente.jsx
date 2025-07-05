@@ -35,7 +35,7 @@ const FormAltaAlumnoPendiente = ({ open, setIsOpen }) => {
 
     try {
       const response = await fetch(
-        'http://localhost:8080/students-pendientes/',
+        'https://vps-5097245-x.dattaweb.com/students-pendientes/',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -69,8 +69,8 @@ const LoginForm = () => {
       setLoading(true);
 
       const endpoint = isAlumno
-        ? 'http://localhost:8080/loginAlumno'
-        : 'http://localhost:8080/login';
+        ? 'https://vps-5097245-x.dattaweb.com/loginAlumno'
+        : 'https://vps-5097245-x.dattaweb.com/login';
 
       const payload = isAlumno
         ? { telefono: values.telefono, dni: values.dni }

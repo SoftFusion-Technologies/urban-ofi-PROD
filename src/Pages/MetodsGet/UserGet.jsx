@@ -41,7 +41,7 @@ const UserGet = () => {
   };
 
   //URL estatica, luego cambiar por variable de entorno
-  const URL = 'http://localhost:8080/users/';
+  const URL = 'https://vps-5097245-x.dattaweb.com/users/';
 
   // Estado para almacenar la lista de users
   const [users, setUsers] = useState([]);

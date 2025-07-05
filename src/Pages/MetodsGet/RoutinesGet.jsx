@@ -22,11 +22,11 @@ export default function RoutinesGet() {
         let url = '';
 
         if (userId) {
-          url = `http://localhost:8080/routines-by-instructor?instructor_id=${userId}`;
+          url = `https://vps-5097245-x.dattaweb.com/routines-by-instructor?instructor_id=${userId}`;
         } else if (studentId) {
-          url = `http://localhost:8080/routines?student_id=${studentId}`;
+          url = `https://vps-5097245-x.dattaweb.com/routines?student_id=${studentId}`;
         } else {
-          url = `http://localhost:8080/routines`;
+          url = `https://vps-5097245-x.dattaweb.com/routines`;
         }
 
         const response = await fetch(url);

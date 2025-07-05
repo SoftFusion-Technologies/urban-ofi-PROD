@@ -13,7 +13,7 @@ const RegistrarProgresoModal = ({ semana, studentId, onClose }) => {
     comentario: ''
   });
 
-  const URL = 'http://localhost:8080/';
+  const URL = 'https://vps-5097245-x.dattaweb.com/';
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));

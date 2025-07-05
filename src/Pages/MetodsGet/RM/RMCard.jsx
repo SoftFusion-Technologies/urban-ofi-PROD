@@ -71,7 +71,7 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
 
   useEffect(() => {
     async function fetchSexo() {
-      const res1 = await fetch(`http://localhost:8080/students/${studentId}`);
+      const res1 = await fetch(`https://vps-5097245-x.dattaweb.com/students/${studentId}`);
       const student = await res1.json();
       const nombre = student.nomyape.split(' ')[0];
       const res2 = await fetch(
@@ -87,7 +87,7 @@ export const RMCard = ({ ejercicio, registros, studentId }) => {
 
   const handleVerHistorial = async (ejercicio) => {
     const res = await fetch(
-      `http://localhost:8080/rm-historial?student_id=${studentId}&ejercicio=${encodeURIComponent(
+      `https://vps-5097245-x.dattaweb.com/rm-historial?student_id=${studentId}&ejercicio=${encodeURIComponent(
         ejercicio
       )}`
     );

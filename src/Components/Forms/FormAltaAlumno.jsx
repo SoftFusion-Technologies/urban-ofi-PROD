@@ -40,7 +40,7 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
   useEffect(() => {
     const obtenerProfesores = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/users');
+        const res = await axios.get('https://vps-5097245-x.dattaweb.com/users');
         const instructores = res.data.filter(
           (user) => user.level === 'instructor'
         );
@@ -87,8 +87,8 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
         alert('Por favor, complete todos los campos obligatorios.');
       } else {
         const url = user
-          ? `http://localhost:8080/students/${user.id}`
-          : 'http://localhost:8080/students/';
+          ? `https://vps-5097245-x.dattaweb.com/students/${user.id}`
+          : 'https://vps-5097245-x.dattaweb.com/students/';
         const method = user ? 'PUT' : 'POST';
 
         const respuesta = await fetch(url, {

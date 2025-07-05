@@ -56,7 +56,7 @@ const StudentMonthlyGoalDetail = ({ studentId, reloadTrigger }) => {
       }).toString();
 
       const res = await axios.get(
-        `http://localhost:8080/student-monthly-goals?${queryString}`
+        `https://vps-5097245-x.dattaweb.com/student-monthly-goals?${queryString}`
       );
 
       // Si el endpoint devuelve un array (porque usas findAll), tomá el primer elemento o el que corresponda
@@ -152,7 +152,7 @@ const StudentMonthlyGoalDetail = ({ studentId, reloadTrigger }) => {
 
     try {
       const res = await axios.put(
-        `http://localhost:8080/student-monthly-goals/${goal.id}`,
+        `https://vps-5097245-x.dattaweb.com/student-monthly-goals/${goal.id}`,
         formData
       );
       setEditMode(false);

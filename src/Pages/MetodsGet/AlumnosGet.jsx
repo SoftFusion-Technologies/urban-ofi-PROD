@@ -43,7 +43,7 @@ const AlumnosGet = () => {
   };
 
   //URL estatica, luego cambiar por variable de entorno
-  const URL = 'http://localhost:8080/students/';
+  const URL = 'https://vps-5097245-x.dattaweb.com/students/';
 
   // Estado para almacenar la lista de alumnos
   const [alumnos, setAlumnos] = useState([]);
@@ -115,7 +115,7 @@ const AlumnosGet = () => {
 
   const obtenerUsuarios = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/users');
+      const res = await axios.get('https://vps-5097245-x.dattaweb.com/users');
       const instructores = res.data.filter(
         (user) => user.level === 'instructor'
       );

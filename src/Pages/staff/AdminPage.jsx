@@ -13,7 +13,7 @@ const AdminPage = () => {
   const [modalDetalleOpen, setModalDetalleOpen] = useState(false);
   const [preguntas, setPreguntas] = useState([]);
   const [preguntaSeleccionada, setPreguntaSeleccionada] = useState(null);
-  const URL = 'http://localhost:8080/ask/';
+  const URL = 'https://vps-5097245-x.dattaweb.com/ask/';
 
   const { userLevel } = useAuth();
 

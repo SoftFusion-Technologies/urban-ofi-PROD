@@ -47,7 +47,7 @@ function PerfilAlumno() {
   useEffect(() => {
     async function fetchAlumno() {
       try {
-        const res = await fetch(`http://localhost:8080/students/${id}`);
+        const res = await fetch(`https://vps-5097245-x.dattaweb.com/students/${id}`);
         if (!res.ok) throw new Error('Error al cargar el perfil');
         const data = await res.json();
         setAlumno(data);
@@ -64,7 +64,7 @@ function PerfilAlumno() {
   useEffect(() => {
     const obtenerUsuarios = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/users');
+        const res = await axios.get('https://vps-5097245-x.dattaweb.com/users');
         const instructores = res.data.filter(
           (user) => user.level === 'instructor'
         );

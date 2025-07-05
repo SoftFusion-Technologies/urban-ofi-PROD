@@ -25,7 +25,7 @@ export default function RMList({ studentId }) {
     try {
       setLoading(true);
       const { data } = await axios.get(
-        `http://localhost:8080/student-rm?student_id=${studentId}`
+        `https://vps-5097245-x.dattaweb.com/student-rm?student_id=${studentId}`
       );
       setRms(data);
       setError(null);

@@ -12,7 +12,7 @@ function EstadisticasAlumno({ studentId }) {
   const today = new Date();
   const mesActual = today.getMonth() + 1;
   const anioActual = today.getFullYear();
-  const URL = 'http://localhost:8080/estadisticas';
+  const URL = 'https://vps-5097245-x.dattaweb.com/estadisticas';
 
   useEffect(() => {
     if (!studentId) return;

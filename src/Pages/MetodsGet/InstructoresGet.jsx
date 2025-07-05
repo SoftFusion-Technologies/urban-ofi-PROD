@@ -33,7 +33,7 @@ const InstructoresGet = () => {
   const [filterSede, setFilterSede] = useState(''); // Estado para el filtro de sede
 
   //URL estatica, luego cambiar por variable de entorno
-  const URL = 'http://localhost:8080/instructores/';
+  const URL = 'https://vps-5097245-x.dattaweb.com/instructores/';
 
   const navigate = useNavigate();
 
@@ -58,7 +58,7 @@ const InstructoresGet = () => {
   useEffect(() => {
     const obtenerInstructores = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/instructores/');
+        const response = await axios.get('https://vps-5097245-x.dattaweb.com/instructores/');
         setInstructor(response.data);
       } catch (error) {
         console.error('Error al obtener los instructores:', error);

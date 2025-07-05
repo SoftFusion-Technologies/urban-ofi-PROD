@@ -12,7 +12,7 @@ const FeedbackList = ({ instructorId, studentId }) => {
 
   useEffect(() => {
     // Obtener nombre del alumno
-    fetch(`http://localhost:8080/students/${studentId}`)
+    fetch(`https://vps-5097245-x.dattaweb.com/students/${studentId}`)
       .then((res) => {
         if (!res.ok) throw new Error('No se pudo obtener el alumno');
         return res.json();
@@ -31,7 +31,7 @@ const FeedbackList = ({ instructorId, studentId }) => {
       setError(null);
       try {
         // Incluyo instructorId en la query string para filtrar
-        const url = `http://localhost:8080/routine-feedbacks?instructor_id=${instructorId}&student_id=${studentId}`;
+        const url = `https://vps-5097245-x.dattaweb.com/routine-feedbacks?instructor_id=${instructorId}&student_id=${studentId}`;
 
         const res = await fetch(url, {
           headers: {

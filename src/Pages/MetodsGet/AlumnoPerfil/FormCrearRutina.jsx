@@ -26,7 +26,7 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
 
   const [modalSuccess, setModalSuccess] = useState(false);
 
-  const URL = 'http://localhost:8080/';
+  const URL = 'https://vps-5097245-x.dattaweb.com/';
 
   const contenedorEjerciciosRef = useRef(null);
 
