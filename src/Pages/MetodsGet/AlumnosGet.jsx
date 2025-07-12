@@ -49,6 +49,7 @@ const AlumnosGet = () => {
   const [alumnos, setAlumnos] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [selectedProfesor, setSelectedProfesor] = useState('');
+  const [filtroRutina, setFiltroRutina] = useState('');
 
   //------------------------------------------------------
   // 1.3 Relacion al Filtrado - Inicio - Benjamin Orellana
@@ -73,7 +74,9 @@ const AlumnosGet = () => {
       ? dato.user_id == selectedProfesor
       : true;
 
-    return searchMatch && profesorMatch;
+    const rutinaMatch = filtroRutina ? dato.rutina_tipo === filtroRutina : true; // <-- Si no hay filtro, muestra todos
+
+    return searchMatch && profesorMatch && rutinaMatch;
   });
 
   //------------------------------------------------------
@@ -257,6 +260,15 @@ const AlumnosGet = () => {
                 ))}
               </select>
             )}
+            <select
+              value={filtroRutina}
+              onChange={(e) => setFiltroRutina(e.target.value)}
+              className="input-filter text-black"
+            >
+              <option value="">Todos los tipos</option>
+              <option value="personalizado">Personalizado</option>
+              <option value="general">General</option>
+            </select>
           </form>
           {/* formulario de busqueda */}
 
@@ -296,7 +308,12 @@ const AlumnosGet = () => {
                     {results.map((alumno) => (
                       <tr
                         key={alumno.id}
-                        className="hover:bg-gray-100 border-b transition duration-200"
+                        className={
+                          'transition-all duration-200 border-b group ' +
+                          (alumno.rutina_tipo === 'personalizado'
+                            ? 'bg-white border-l-[6px] border-[#fc4b08] hover:bg-orange-50'
+                            : 'bg-blue-50 border-l-[6px] border-blue-400 hover:bg-blue-100')
+                        }
                       >
                         <td
                           className="py-2 px-4"
@@ -308,10 +325,28 @@ const AlumnosGet = () => {
                           {obtenerNombreProfesor(alumno.user_id)}
                         </td>
                         <td
-                          className="py-2 px-4 "
+                          className="py-2 px-4 cursor-pointer"
+                          style={{ verticalAlign: 'middle' }}
                           onClick={() => obtenerAlumno(alumno.id)}
                         >
-                          {alumno.nomyape}
+                          <div className="flex items-center gap-2 w-full min-w-0 overflow-hidden">
+                            <span className="truncate max-w-[90px] md:max-w-[180px] block font-medium">
+                              {alumno.nomyape}
+                            </span>
+                            <span
+                              className={
+                                'flex-shrink-0 px-2 py-1 text-xs rounded-full font-bold border shadow-sm animate-fadeIn ' +
+                                (alumno.rutina_tipo === 'personalizado'
+                                  ? 'bg-orange-100 text-orange-700 border-orange-300'
+                                  : 'bg-blue-100 text-blue-700 border-blue-300')
+                              }
+                              style={{ whiteSpace: 'nowrap' }}
+                            >
+                              {alumno.rutina_tipo === 'personalizado'
+                                ? 'Personalizado'
+                                : 'General'}
+                            </span>
+                          </div>
                         </td>
                         <td
                           className="py-2 px-4"

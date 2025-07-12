@@ -4,7 +4,7 @@
  * Versión: 1.0
  *
  * Descripción:
- *  Este archivo (FormAlataAlumno.jsx) es el componente donde realizamos un formulario para
+ *  Este archivo (FormAltaAlumno.jsx) es el componente donde realizamos un formulario para
  *  la tabla users, este formulario aparece en la web del staff
  *
  *
@@ -23,11 +23,12 @@ import ModalError from './ModalError';
 import Alerta from '../Error';
 import ParticlesBackground from '../ParticlesBackground';
 import axios from 'axios';
+import { useAuth } from '../../AuthContext';
 // isOpen y onCLose son los metodos que recibe para abrir y cerrar el modal
-const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
+const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
   const [showModal, setShowModal] = useState(false);
   const [errorModal, setErrorModal] = useState(false);
-
+  const { userLevel, userId } = useAuth();
   // const textoModal = 'Usuario creado correctamente.'; se elimina el texto
   // nuevo estado para gestionar dinámicamente según el método (PUT o POST)
   const [textoModal, setTextoModal] = useState('');
@@ -59,17 +60,17 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
       .min(3, 'El nombre completo es muy corto')
       .max(100, 'El nombre completo es muy largo')
       .required('El nombre completo es obligatorio'),
-
     dni: Yup.string()
       .matches(/^\d+$/, 'Solo se permiten números')
       .min(7, 'El DNI es muy corto')
       .max(10, 'El DNI es muy largo')
       .required('El DNI es obligatorio'),
-
     user_id: Yup.number()
       .typeError('Debe seleccionar un profesor')
       .required('Debe asignar un profesor'),
-
+    rutina_tipo: Yup.string()
+      .oneOf(['personalizado', 'general'], 'Debe elegir una rutina')
+      .required('El tipo de rutina es obligatorio'), // <---
     created_at: Yup.date().nullable(true),
     updated_at: Yup.date().nullable(true)
   });
@@ -158,7 +159,12 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
             telefono: user ? user.telefono : '',
             dni: user ? user.dni : '',
             objetivo: user ? user.objetivo : '',
-            user_id: user ? user.user_id : '', // profesor asignado
+            user_id: user
+              ? user.user_id
+              : userLevel === 'instructor'
+              ? userId
+              : '', // <-- si instructor, ya viene cargado
+            rutina_tipo: user ? user.rutina_tipo : 'personalizado',
             created_at: user ? user.created_at : new Date(),
             updated_at: user ? user.updated_at : new Date()
           }}
@@ -173,7 +179,7 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
         >
           {({ errors, touched, setFieldValue }) => {
             return (
-              <div className="py-0 max-h-[500px] max-w-[400px] w-[400px] overflow-y-auto bg-white rounded-xl">
+              <div className="py-0 max-h-[600px] max-w-[400px] w-[400px] overflow-y-auto bg-white rounded-xl">
                 {/* Cuando se haga el modal, sacarle el padding o ponerle uno de un solo digito */}
                 <div className="w-full max-w-md mx-auto px-4">
                   <Form className="bg-white rounded-xl shadow-md w-full">
@@ -242,6 +248,29 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                       )}
                     </div>
 
+                    {/* Tipo de Rutina */}
+                    <div className="mb-3 px-4">
+                      <label
+                        htmlFor="rutina_tipo"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Tipo de Rutina{' '}
+                        <span className="text-orange-500 font-bold">*</span>
+                      </label>
+                      <Field
+                        as="select"
+                        id="rutina_tipo"
+                        name="rutina_tipo"
+                        className="appearance-none w-full px-4 py-3 bg-white border border-gray-300 text-sm text-gray-800 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      >
+                        <option value="personalizado">Personalizado</option>
+                        <option value="general">General</option>
+                      </Field>
+                      {errors.rutina_tipo && touched.rutina_tipo && (
+                        <Alerta>{errors.rutina_tipo}</Alerta>
+                      )}
+                    </div>
+
                     {/* Objetivo */}
                     <div className="mb-3 px-4">
                       <Field
@@ -256,7 +285,6 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                         <Alerta>{errors.objetivo}</Alerta>
                       )}
                     </div>
-
                     {/* Selección Profesor */}
                     <div className="mb-5 px-4">
                       <label
@@ -265,39 +293,52 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                       >
                         Profesor asignado
                       </label>
-                      <div className="relative">
-                        <Field
-                          as="select"
-                          id="user_id"
-                          name="user_id"
-                          className="appearance-none w-full px-4 py-3 bg-white border border-gray-300 text-sm text-gray-800 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="" disabled>
-                            Selecciona un profesor
-                          </option>
-                          {profesores.map((profesor) => (
-                            <option key={profesor.id} value={profesor.id}>
-                              {profesor.name}
-                            </option>
-                          ))}
-                        </Field>
-                        {/* Flecha custom (puedes omitirla si no querés extra UI) */}
-                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                          <svg
-                            className="w-5 h-5 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M19 9l-7 7-7-7"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                      {/* Selección Profesor */}
+                      {userLevel === 'instructor' ? (
+                        <div className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-800 font-semibold shadow-sm cursor-not-allowed">
+                          {profesores.find((p) => p.id === userId)?.name ||
+                            'Instructor'}
+                          <Field
+                            type="hidden"
+                            id="user_id"
+                            name="user_id"
+                            value={userId}
+                          />
                         </div>
-                      </div>
+                      ) : (
+                        <div className="relative">
+                          <Field
+                            as="select"
+                            id="user_id"
+                            name="user_id"
+                            className="appearance-none w-full px-4 py-3 bg-white border border-gray-300 text-sm text-gray-800 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="" disabled>
+                              Selecciona un profesor
+                            </option>
+                            {profesores.map((profesor) => (
+                              <option key={profesor.id} value={profesor.id}>
+                                {profesor.name}
+                              </option>
+                            ))}
+                          </Field>
+                          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M19 9l-7 7-7-7"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
                       {errors.user_id && touched.user_id && (
                         <p className="text-red-500 text-xs mt-1">
                           {errors.user_id}
@@ -330,8 +371,8 @@ const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
   );
 };
 //Se elimina los default prosp, quedo desactualizado
-// FormAlataAlumno.defaultProps = {
+// FormAltaAlumno.defaultProps = {
 //   users: {},
 // };
 
-export default FormAlataAlumno;
+export default FormAltaAlumno;

@@ -3,13 +3,10 @@ import { useParams } from 'react-router-dom';
 import {
   FaPhone,
   FaIdCard,
-  FaBullseye,
   FaCalendarAlt,
-  FaEdit,
-  FaDumbbell,
-  FaUtensils,
-  FaFileAlt,
-  FaChalkboardTeacher
+  FaChalkboardTeacher,
+  FaUserCog,
+  FaUsers
 } from 'react-icons/fa';
 import NavbarStaff from '../../staff/NavbarStaff';
 import ParticlesBackground from '../../../Components/ParticlesBackground';
@@ -47,7 +44,9 @@ function PerfilAlumno() {
   useEffect(() => {
     async function fetchAlumno() {
       try {
-        const res = await fetch(`https://vps-5097245-x.dattaweb.com/students/${id}`);
+        const res = await fetch(
+          `https://vps-5097245-x.dattaweb.com/students/${id}`
+        );
         if (!res.ok) throw new Error('Error al cargar el perfil');
         const data = await res.json();
         setAlumno(data);
@@ -86,6 +85,11 @@ function PerfilAlumno() {
     return profesor ? profesor.id : null; // null si no lo encuentra
     console.log(userId);
   };
+
+  const capitalizeFirst = (str) =>
+    str && str.length > 0
+      ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+      : '';
 
   if (loading) {
     return (
@@ -255,6 +259,23 @@ function PerfilAlumno() {
                       <span className="text-gray-500 font-semibold">DNI:</span>{' '}
                       <span className="text-gray-800">
                         {alumno.dni || 'No disponible'}
+                      </span>
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    {alumno.rutina_tipo === 'personalizado' ? (
+                      <FaUserCog className="text-orange-500 text-lg" />
+                    ) : (
+                      <FaUsers className="text-blue-500 text-lg" />
+                    )}
+                    <span>
+                      <span className="text-gray-500 font-semibold">
+                        Tipo de Alumno:
+                      </span>{' '}
+                      <span className="text-gray-800">
+                        {alumno.rutina_tipo
+                          ? capitalizeFirst(alumno.rutina_tipo)
+                          : 'No disponible'}
                       </span>
                     </span>
                   </p>
