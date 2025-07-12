@@ -23,7 +23,7 @@ const StudentGoalModal = ({ studentId, onGoalCreated }) => {
 
   const { nomyape } = useAuth();
 
-  const URL = 'http://localhost:8080';
+  const URL = 'https://vps-5097245-x.dattaweb.com';
 
   useEffect(() => {
     if (!studentId) return;

@@ -60,7 +60,7 @@ const EstadisticasIns = () => {
     setSelectedMonthName(getMonthName(selectedMonth));
   }, [selectedMonth]); // Solo se ejecuta cuando `selectedMonth` cambia
 
-  const URL = 'http://localhost:8080';
+  const URL = 'https://vps-5097245-x.dattaweb.com';
   // Fetch de datos desde el backend
   useEffect(() => {
     // fetchTotalAlumnosP(selectedMonth, selectedYear);
