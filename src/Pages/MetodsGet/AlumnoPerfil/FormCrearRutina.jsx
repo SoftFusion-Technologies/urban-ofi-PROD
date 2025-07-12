@@ -18,7 +18,15 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
   const [fecha, setFecha] = useState(fechaInput);
 
   const [ejercicios, setEjercicios] = useState([
-    { musculo: '', descripcion: '', orden: 1 }
+    {
+      musculo: '',
+      descripcion: '',
+      orden: 1,
+      series: '',
+      repeticiones: '',
+      tiempo: '',
+      descanso: ''
+    }
   ]);
 
   const [desde, setDesde] = useState('');
@@ -34,8 +42,17 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
     if (ejercicios.length >= 10) return; // Límite de 10 ejercicios
     setEjercicios([
       ...ejercicios,
-      { musculo: '', descripcion: '', orden: ejercicios.length + 1 }
+      {
+        musculo: '',
+        descripcion: '',
+        orden: ejercicios.length + 1,
+        series: '',
+        repeticiones: '',
+        tiempo: '',
+        descanso: ''
+      }
     ]);
+
     // Pequeño timeout para que el DOM actualice antes de hacer scroll
     setTimeout(() => {
       if (contenedorEjerciciosRef.current) {
@@ -103,6 +120,10 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
         musculo: ej.musculo,
         descripcion: ej.descripcion,
         orden: ej.orden,
+        series: ej.series || null,
+        repeticiones: ej.repeticiones || null,
+        tiempo: ej.tiempo || null,
+        descanso: ej.descanso || null,
         desde: fechaDesde,
         hasta: fechaHasta
       }));
@@ -199,6 +220,71 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition resize-none"
                 rows={3}
               />
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 mb-2">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Series
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={ej.series}
+                    onChange={(e) =>
+                      handleEjercicioChange(index, 'series', e.target.value)
+                    }
+                    className="w-full rounded-md border border-gray-300 px-2 py-1"
+                    placeholder="Ej: 4"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Repeticiones
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={ej.repeticiones}
+                    onChange={(e) =>
+                      handleEjercicioChange(
+                        index,
+                        'repeticiones',
+                        e.target.value
+                      )
+                    }
+                    className="w-full rounded-md border border-gray-300 px-2 py-1"
+                    placeholder="Ej: 12"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Tiempo
+                  </label>
+                  <input
+                    type="text"
+                    value={ej.tiempo}
+                    onChange={(e) =>
+                      handleEjercicioChange(index, 'tiempo', e.target.value)
+                    }
+                    className="w-full rounded-md border border-gray-300 px-2 py-1"
+                    placeholder="Ej: 60s"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Descanso
+                  </label>
+                  <input
+                    type="text"
+                    value={ej.descanso}
+                    onChange={(e) =>
+                      handleEjercicioChange(index, 'descanso', e.target.value)
+                    }
+                    className="w-full rounded-md border border-gray-300 px-2 py-1"
+                    placeholder="Ej: 1 min"
+                  />
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

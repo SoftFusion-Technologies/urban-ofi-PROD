@@ -335,12 +335,12 @@ function RutinasConDuracion({ studentId }) {
       const repeticiones = match[2].trim();
       return (
         <>
-          <span className="font-semibold text-gray-900">📌 {descripcion}</span>
+          <span className="font-semibold text-gray-900">{descripcion}</span>
           <span className="text-gray-500 ml-2">({repeticiones})</span>
         </>
       );
     }
-    return <span>📌 {ejercicio.trim()}</span>;
+    return <span> {ejercicio.trim()}</span>;
   }
 
   const handleNecesitoAyuda = async (routineId, exerciseId, exerciseName) => {
@@ -416,19 +416,19 @@ function RutinasConDuracion({ studentId }) {
     }
   };
   return (
-    <div className="p-6 bg-gray-100 rounded-lg max-w-xl mx-auto">
+    <div className="p-6 bg-gray-50 rounded-3xl max-w-2xl mx-auto shadow-2xl">
       <h2 className="titulo uppercase text-4xl font-bold mb-6 text-center text-gray-800">
         Rutinas vigentes
         {rutinasFiltradas.length > 0 &&
           rutinasFiltradas[0].exercises.length > 0 && (
             <>
               <br />
-              <span className="text-sm font-normal text-gray-500">
-                desde{' '}
+              <span className="text-lg font-normal text-gray-500 block mt-2 tracking-wide">
+                DESDE{' '}
                 {formatFechaDDMMYYYY(
                   parseFechaSinZona(rutinasFiltradas[0].exercises[0].desde)
                 )}{' '}
-                hasta{' '}
+                HASTA{' '}
                 {formatFechaDDMMYYYY(
                   parseFechaSinZona(rutinasFiltradas[0].exercises[0].hasta)
                 )}
@@ -443,8 +443,8 @@ function RutinasConDuracion({ studentId }) {
         </p>
       ) : (
         <div
-          className="overflow-y-auto pr-2 space-y-6"
-          style={{ maxHeight: '393px' }}
+          className="overflow-y-auto pr-2 space-y-10"
+          style={{ maxHeight: '440px' }}
         >
           {rutinasFiltradas.map((rutina) => {
             // Agrupar ejercicios por músculo dentro de cada rutina
@@ -462,7 +462,7 @@ function RutinasConDuracion({ studentId }) {
                   <div className="flex justify-end mb-2">
                     <button
                       onClick={() => handleEliminarRutina(rutina.id)}
-                      className="text-red-500 hover:text-red-700 text-sm font-semibold underline"
+                      className="text-red-600 hover:text-red-700 text-sm font-semibold"
                     >
                       🗑️ Eliminar rutina completa
                     </button>
@@ -472,21 +472,20 @@ function RutinasConDuracion({ studentId }) {
                   ([musculo, ejercicios]) => (
                     <div
                       key={musculo}
-                      className="bg-white p-4 rounded shadow mb-6"
+                      className="rounded-2xl bg-white/90 p-7 shadow-lg border border-blue-100 mb-10"
                     >
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-bold text-lg text-blue-600">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+                        <h3 className="font-extrabold text-2xl text-blue-700 tracking-tight">
                           {musculo.toUpperCase()}
                         </h3>
-
                         {(userLevel === 'admin' ||
                           userLevel === 'instructor') && (
-                          <div className="flex gap-2">
+                          <div className="flex gap-3">
                             <button
                               onClick={() =>
                                 handleEditarMusculo(rutina.id, musculo)
                               }
-                              className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 px-2 py-1 rounded text-xs font-medium"
+                              className="bg-yellow-50 text-yellow-700 hover:bg-yellow-100 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 shadow"
                             >
                               ✏️ Editar Músculo
                             </button>
@@ -494,52 +493,53 @@ function RutinasConDuracion({ studentId }) {
                               onClick={() =>
                                 handleEliminarMusculo(rutina.id, musculo)
                               }
-                              className="bg-red-100 text-red-700 hover:bg-red-200 px-2 py-1 rounded text-xs font-medium"
+                              className="bg-red-50 text-red-700 hover:bg-red-100 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 shadow"
                             >
                               🗑️ Eliminar Músculo
                             </button>
                           </div>
                         )}
                       </div>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-800">
-                        {ejercicios.map((ej) =>
-                          agruparLineas(ej.descripcion.split(/\r?\n/)).map(
-                            (linea, idx) => {
-                              const ejercicio = linea;
-                              // lo demás igual...
+                      <ul className="space-y-6">
+                        {ejercicios.map((ej, idx) => {
+                          const esEditando =
+                            editando &&
+                            editando.routineId === rutina.id &&
+                            editando.exerciseId === ej.id &&
+                            (editando.lineaIndex === idx ||
+                              editando.lineaIndex == null);
 
-                              if (!ejercicio) return null;
-
-                              // Para editar, guardamos el texto completo del ejercicio
-                              // Si el ejercicio está en edición, mostramos input, sino texto + botones
-                              const esEditando =
-                                editando &&
-                                editando.routineId === rutina.id &&
-                                editando.exerciseId === ej.id &&
-                                editando.lineaIndex === idx;
-
-                              // Limpiar texto para búsqueda (solo si no está editando)
-                              let busqueda = limpiarBusqueda(ejercicio);
-                              if (busqueda.split(' ').length < 3) {
-                                busqueda = musculo + ' ' + busqueda;
-                              }
-
-                              return (
-                                <li
-                                  key={idx}
-                                  className="flex justify-between items-center"
-                                >
-                                  {esEditando ? (
-                                    <div className="flex items-center w-full space-x-2">
-                                      <input
-                                        type="text"
-                                        value={textoEditado}
-                                        autoFocus
-                                        onChange={(e) =>
-                                          setTextoEditado(e.target.value)
+                          return (
+                            <li
+                              key={ej.id}
+                              className="flex flex-col bg-slate-50/80 px-6 py-5 rounded-xl shadow border border-gray-200 mb-1"
+                            >
+                              <div className="flex gap-3 items-center mb-2 w-full">
+                                <span className="text-red-500 text-xl">📌</span>
+                                {esEditando ? (
+                                  <div className="w-full flex flex-col sm:flex-row gap-2">
+                                    <input
+                                      type="text"
+                                      className="border border-gray-300 rounded px-3 py-2 flex-1 max-w-full sm:max-w-[220px]"
+                                      value={textoEditado}
+                                      autoFocus
+                                      onChange={(e) =>
+                                        setTextoEditado(e.target.value)
+                                      }
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          handleGuardarEdicion(
+                                            rutina.id,
+                                            ej.id,
+                                            idx,
+                                            textoEditado
+                                          );
                                         }
-                                        className="border rounded px-2 py-1 flex-grow"
-                                      />
+                                        if (e.key === 'Escape')
+                                          setEditando(null);
+                                      }}
+                                    />
+                                    <div className="flex flex-row gap-2 sm:ml-2">
                                       <button
                                         onClick={() =>
                                           handleGuardarEdicion(
@@ -549,108 +549,144 @@ function RutinasConDuracion({ studentId }) {
                                             textoEditado
                                           )
                                         }
-                                        className="text-green-600 hover:text-green-800 text-lg"
+                                        className="text-green-600 hover:text-green-800 text-xl"
                                         title="Guardar"
                                       >
                                         ✅
                                       </button>
                                       <button
                                         onClick={() => setEditando(null)}
-                                        className="text-red-600 hover:text-red-800 text-lg"
+                                        className="text-red-600 hover:text-red-800 text-xl"
                                         title="Cancelar"
                                       >
                                         ❌
                                       </button>
                                     </div>
-                                  ) : (
-                                    <>
-                                      <span className="flex-grow">
-                                        {formatearLineaEnJSX(ejercicio)}
-                                      </span>
-                                      <div className="flex space-x-4 ml-4 flex-shrink-0">
-                                        {userLevel === '' && (
-                                          <>
-                                            <button
-                                              onClick={() =>
-                                                window.open(
-                                                  `https://www.youtube.com/results?search_query=${encodeURIComponent(
-                                                    busqueda
-                                                  )}`,
-                                                  '_blank'
-                                                )
-                                              }
-                                              className="text-blue-600 hover:underline"
-                                            >
-                                              Ver video
-                                            </button>
-                                            <button
-                                              className="text-red-600 hover:underline"
-                                              onClick={() =>
-                                                handleNecesitoAyuda(
-                                                  rutina.id,
-                                                  ej.id,
-                                                  ejercicio
-                                                )
-                                              }
-                                            >
-                                              Necesito Ayuda
-                                            </button>
-                                          </>
-                                        )}
-
-                                        {(userLevel === 'admin' ||
-                                          userLevel === 'instructor') && (
-                                          <>
-                                            <button
-                                              onClick={() => {
-                                                setEditando({
-                                                  routineId: rutina.id,
-                                                  exerciseId: ej.id,
-                                                  lineaIndex: idx
-                                                });
-                                                setTextoEditado(ejercicio);
-                                              }}
-                                              className="text-yellow-600 hover:underline"
-                                            >
-                                              Editar
-                                            </button>
-                                            <button
-                                              className="text-red-600 hover:underline"
-                                              onClick={() =>
-                                                handleEliminarLinea(
-                                                  rutina.id,
-                                                  ej.id,
-                                                  idx
-                                                )
-                                              }
-                                            >
-                                              Eliminar
-                                            </button>
-                                          </>
-                                        )}
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="font-medium text-lg flex-1">
+                                      {formatearLineaEnJSX(ej.descripcion)}
+                                    </span>
+                                    {(userLevel === 'admin' ||
+                                      userLevel === 'instructor') && (
+                                      <div className="flex flex-wrap gap-2 ml-2 mt-2 md:mt-0">
+                                        <button
+                                          onClick={() => {
+                                            setEditando({
+                                              routineId: rutina.id,
+                                              exerciseId: ej.id,
+                                              lineaIndex: idx
+                                            });
+                                            setTextoEditado(ej.descripcion);
+                                          }}
+                                          className="text-yellow-600 hover:underline text-xs font-semibold"
+                                        >
+                                          Editar
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleEliminarLinea(
+                                              rutina.id,
+                                              ej.id,
+                                              idx
+                                            )
+                                          }
+                                          className="text-red-600 hover:underline text-xs font-semibold"
+                                        >
+                                          Eliminar
+                                        </button>
                                       </div>
-                                    </>
-                                  )}
-                                </li>
-                              );
-                            }
-                          )
-                        )}
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                              {/* Panel de datos */}
+                              <div className="flex flex-wrap gap-4 text-base font-medium text-gray-700 mt-2">
+                                {ej.series && (
+                                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm">
+                                    <span>🔁</span>Series:{' '}
+                                    <span className="font-bold">
+                                      {ej.series}
+                                    </span>
+                                  </span>
+                                )}
+                                {ej.repeticiones && (
+                                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm">
+                                    <span>🔢</span>Reps:{' '}
+                                    <span className="font-bold">
+                                      {ej.repeticiones}
+                                    </span>
+                                  </span>
+                                )}
+                                {ej.tiempo && (
+                                  <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">
+                                    <span>⏱️</span>Tiempo:{' '}
+                                    <span className="font-bold">
+                                      {ej.tiempo}
+                                    </span>
+                                  </span>
+                                )}
+                                {ej.descanso && (
+                                  <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-sm">
+                                    <span>💤</span>Descanso:{' '}
+                                    <span className="font-bold">
+                                      {ej.descanso}
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex gap-3 mt-3">
+                                {userLevel === '' && (
+                                  <>
+                                    <button
+                                      onClick={() =>
+                                        window.open(
+                                          `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                                            musculo + ' ' + ej.descripcion
+                                          )}`,
+                                          '_blank'
+                                        )
+                                      }
+                                      className="text-blue-500 hover:underline text-base font-semibold"
+                                    >
+                                      Ver video
+                                    </button>
+                                    <button
+                                      className="text-green-600 hover:underline text-base font-semibold"
+                                      onClick={() =>
+                                        handleNecesitoAyuda(
+                                          rutina.id,
+                                          ej.id,
+                                          ej.descripcion
+                                        )
+                                      }
+                                    >
+                                      Necesito Ayuda
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
                       </ul>
                       {userLevel === '' && (
-                        <button
-                          type="button"
-                          aria-label={`Dar feedback para la rutina ${
-                            rutina.nombre || rutina.id
-                          }`}
-                          className="mt-4 bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition"
-                          onClick={() => {
-                            setRutinaFeedbackId(rutina.id);
-                            setFeedbackModalOpen(true);
-                          }}
-                        >
-                          Dar Feedback
-                        </button>
+                        <div className="mt-7 flex justify-center gap-6">
+                          <button
+                            type="button"
+                            aria-label={`Dar feedback para la rutina ${
+                              rutina.nombre || rutina.id
+                            }`}
+                            className="bg-green-600 text-white px-5 py-3 rounded-xl shadow hover:bg-green-700 transition font-semibold text-lg"
+                            onClick={() => {
+                              setRutinaFeedbackId(rutina.id);
+                              setFeedbackModalOpen(true);
+                            }}
+                          >
+                            Dar Feedback
+                          </button>
+                        </div>
                       )}
                     </div>
                   )
@@ -660,6 +696,7 @@ function RutinasConDuracion({ studentId }) {
           })}
         </div>
       )}
+
       <ModalSuccess
         isVisible={modalVisible}
         onClose={() => setModalVisible(false)}
