@@ -26,6 +26,9 @@ Modal.setAppElement('#root');
 
 const LoginForm = () => {
   useEffect(() => {
+    localStorage.removeItem('userLevel');
+  }, []);
+  useEffect(() => {
     const element = document.getElementById('login');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -83,9 +86,11 @@ const LoginForm = () => {
           if (res.data.message === 'Success') {
             if (isAlumno) {
               loginAlumno(res.data.token, res.data.nomyape, res.data.id); // guardar el id
+              localStorage.setItem('userLevel', 'alumno'); // <-- GUARDAR EL TIPO DE LOGIN
               navigate(`/miperfil/student/${res.data.id}`); // redirigir con id
             } else {
               login(res.data.token, values.email, res.data.level, res.data.id);
+              localStorage.setItem('userLevel', res.data.level); // admin, instructor, etc.
               navigate('/dashboard');
             }
           } else {
@@ -112,8 +117,8 @@ const LoginForm = () => {
         }}
         className="bg-white shadow-2xl rounded-2xl p-8 w-[95%] max-w-md mx-auto"
       >
-        <h1 className="text-5xl titulo uppercase font-bold text-center text-blue-600 mb-2">
-          Bienvenido
+        <h1 className="text-3xl titulo uppercase font-bold text-center text-blue-600 mb-2">
+          {isAlumno ? 'Bienvenido Alumno' : 'Bienvenido Profe'}
         </h1>
 
         <motion.p
@@ -122,7 +127,9 @@ const LoginForm = () => {
           transition={{ delay: 0.2 }}
           className="text-center text-sm text-gray-500 mb-6"
         >
-          Iniciá sesión para continuar
+          {isAlumno
+            ? 'Ingresá tu teléfono y DNI para entrar a tu perfil de alumno'
+            : 'Iniciá sesión para continuar'}
         </motion.p>
 
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
-    localStorage.removeItem('userLevel');
+    // localStorage.removeItem('userLevel');
     localStorage.removeItem('nomyape');
     localStorage.removeItem('alumnoId');
   };

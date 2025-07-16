@@ -18,7 +18,13 @@ import { useAuth } from './AuthContext';
 const ProtectedRoute = ({ children }) => {
   const { authToken } = useAuth();
 
+  console.log(authToken);
   if (!authToken) {
+    // Revisa el último tipo de usuario guardado
+    const userLevel = localStorage.getItem('userLevel');
+    if (userLevel === 'alumno') {
+      return <Navigate to="/soyalumno" />;
+    }
     return <Navigate to="/login" />;
   }
 
@@ -26,3 +32,4 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default ProtectedRoute;
+

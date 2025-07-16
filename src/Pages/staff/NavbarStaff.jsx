@@ -42,10 +42,16 @@ const NavbarStaff = () => {
   }, [userName, nomyape]);
 
   const handleLogout = () => {
+    // 1. LEER primero el tipo de usuario antes de borrar localStorage
+    const userLevel = localStorage.getItem('userLevel');
     logout();
-    navigate('/inicio');
+    // 2. Redirigir según tipo
+    if (userLevel === 'alumno') {
+      navigate('/soyalumno');
+    } else {
+      navigate('/login');
+    }
   };
-
   const Links = [
     {
       id: 1,
