@@ -10,12 +10,35 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
   const { userId } = useAuth();
 
   const hoy = new Date();
-  const fechaInput = hoy.toISOString().slice(0, 10);
-  const fechaTexto = `${String(hoy.getDate()).padStart(2, '0')}/${String(
-    hoy.getMonth() + 1
-  ).padStart(2, '0')}/${hoy.getFullYear()}`;
-
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  const fechaInput = `${yyyy}-${mm}-${dd}`; // '2025-07-17'
   const [fecha, setFecha] = useState(fechaInput);
+
+  const [modalEjercicioIdx, setModalEjercicioIdx] = useState(null);
+  const [ejerciciosProfesor, setEjerciciosProfesor] = useState([]); // array desde BD
+  const [busquedaEjercicio, setBusquedaEjercicio] = useState('');
+
+  // Cargar ejercicios del profe al montar
+  useEffect(() => {
+    // Reemplaza con tu endpoint y lógica de auth
+    fetch(
+      `https://vps-5097245-x.dattaweb.com/ejercicios-profes?profesor_id=${userId}`
+    )
+      .then((res) => res.json())
+      .then(setEjerciciosProfesor)
+      .catch(() => setEjerciciosProfesor([]));
+  }, [userId]);
+
+  const ejerciciosProfesorFiltrados = ejerciciosProfesor.filter((ej) =>
+    ej.nombre.toLowerCase().includes(busquedaEjercicio.toLowerCase())
+  );
+
+  function abrirModalSeleccionarEjercicio(idx) {
+    setModalEjercicioIdx(idx);
+    setBusquedaEjercicio('');
+  }
 
   const [ejercicios, setEjercicios] = useState([
     {
@@ -80,13 +103,10 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Validar fecha
     if (!fecha) {
       alert('Por favor, ingresa la fecha de la rutina.');
       return;
     }
-
-    // Validar que no haya ejercicios vacíos
     for (let i = 0; i < ejercicios.length; i++) {
       const ej = ejercicios[i];
       if (!ej.musculo.trim() || !ej.descripcion.trim()) {
@@ -96,19 +116,28 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
     }
 
     try {
-      // Obtener mes y anio desde la fecha seleccionada
       const fechaObj = new Date(fecha);
       const mes = fechaObj.getMonth() + 1;
       const anio = fechaObj.getFullYear();
-
-      // Obtener fecha actual en formato yyyy-mm-dd
       const fechaHoy = new Date().toISOString().split('T')[0];
-
-      // Si no se selecciona ninguna fecha, usar la actual
       const fechaDesde = desde || fechaHoy;
       const fechaHasta = hasta || fechaHoy;
 
-      // 1. Crear rutina
+      // 1. Chequear e insertar nuevos ejercicios del profesor
+      for (let ej of ejercicios) {
+        const yaExiste = ejerciciosProfesor.find(
+          (x) =>
+            x.nombre.trim().toLowerCase() === ej.musculo.trim().toLowerCase()
+        );
+        if (!yaExiste) {
+          await axios.post(`${URL}ejercicios-profes`, {
+            nombre: ej.musculo,
+            profesor_id: userId
+          });
+        }
+      }
+
+      // 2. Crear rutina
       const rutinaResponse = await axios.post(`${URL}routines`, {
         student_id: parseInt(studentId),
         instructor_id: userId,
@@ -116,14 +145,11 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
         anio,
         fecha
       });
-
       const routine_id = rutinaResponse.data.id;
-
-      if (!routine_id) {
+      if (!routine_id)
         throw new Error('No se recibió el ID de la rutina creada');
-      }
 
-      // 2. Armar ejercicios para enviar
+      // 3. Armar ejercicios para enviar
       const ejerciciosParaEnviar = ejercicios.map((ej) => ({
         routine_id,
         musculo: ej.musculo,
@@ -135,25 +161,18 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
         descanso: ej.descanso || null,
         desde: fechaDesde,
         hasta: fechaHasta,
-        color_id: ej.color_id || null // <-- AGREGA ESTA LÍNEA
+        color_id: ej.color_id || null
       }));
 
-      // 3. Enviar ejercicios asociados
+      // 4. Enviar ejercicios asociados
       await axios.post(`${URL}routine_exercises`, ejerciciosParaEnviar);
-      // 4. Mostrar mensaje de éxito
-      setModalSuccess(true);
 
-      // Limpiar campos
+      setModalSuccess(true);
       setFecha('');
       setEjercicios([{ musculo: '', descripcion: '', orden: 1 }]);
-      // 5. Esperar unos segundos, luego limpiar y cerrar
       setTimeout(() => {
         setModalSuccess(false);
-
-        // Callback para recargar rutinas
         if (onRutinaCreada) onRutinaCreada();
-
-        // Cerrar modal
         onClose();
       }, 1500);
     } catch (error) {
@@ -205,15 +224,24 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
               key={index}
               className="border border-gray-200 rounded-lg p-4 bg-gray-50 shadow-sm"
             >
-              <label
-                htmlFor={`musculo-${index}`}
-                className="block mb-1 text-sm font-medium text-gray-700"
-              >
-                Músculo o nombre del bloque
-                <span className="block text-xs text-gray-400 font-normal">
-                  Ejemplo: “Pecho”, “Entrada en calor”, “Bloque 1”...
-                </span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label
+                  htmlFor={`musculo-${index}`}
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Músculo o nombre del bloque
+                  <span className="block text-xs text-gray-400 font-normal">
+                    Ejemplo: “Pecho”, “Entrada en calor”, “Bloque 1”...
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  className="ml-4 px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow transition"
+                  onClick={() => abrirModalSeleccionarEjercicio(index)}
+                >
+                  Seleccionar
+                </button>
+              </div>
 
               <input
                 id={`musculo-${index}`}
@@ -534,6 +562,54 @@ const FormCrearRutina = ({ onClose, onRutinaCreada }) => {
                   </button>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+      {modalEjercicioIdx !== null && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto p-6 relative animate-fade-in">
+            <button
+              onClick={() => setModalEjercicioIdx(null)}
+              className="absolute top-3 right-4 text-gray-400 hover:text-black text-xl"
+            >
+              ✕
+            </button>
+            <h3 className="text-lg font-bold mb-4 text-blue-900">
+              Seleccionar ejercicio rápido
+            </h3>
+            <input
+              type="text"
+              className="w-full mb-3 rounded-md border border-blue-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-400 transition"
+              placeholder="Buscar ejercicio…"
+              value={busquedaEjercicio}
+              onChange={(e) => setBusquedaEjercicio(e.target.value)}
+              autoFocus
+            />
+            <div className="max-h-80 overflow-y-auto flex flex-col gap-1">
+              {ejerciciosProfesorFiltrados.length === 0 ? (
+                <div className="text-gray-400 text-center py-4">
+                  Sin ejercicios…
+                </div>
+              ) : (
+                ejerciciosProfesorFiltrados.map((ej) => (
+                  <button
+                    key={ej.id}
+                    type="button"
+                    onClick={() => {
+                      handleEjercicioChange(
+                        modalEjercicioIdx,
+                        'musculo',
+                        ej.nombre
+                      );
+                      setModalEjercicioIdx(null);
+                    }}
+                    className="w-full text-left px-4 py-2 rounded-lg hover:bg-blue-100/80 text-blue-900 font-semibold transition"
+                  >
+                    {ej.nombre}
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>
