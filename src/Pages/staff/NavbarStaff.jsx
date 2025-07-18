@@ -64,6 +64,12 @@ const NavbarStaff = () => {
       href: 'dashboard/users',
       title: 'Usuarios',
       roles: ['admin', 'administrador']
+    },
+    {
+      id: 3,
+      href: 'dashboard/administracion-colores',
+      title: 'Adm. Colores',
+      roles: ['admin', 'instructor'] // Benjamin Orellana INI / 12/06/2024 /nueva forma de gestionar los accesos
     }
   ];
 

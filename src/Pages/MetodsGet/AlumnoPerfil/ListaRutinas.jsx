@@ -35,6 +35,12 @@ function ListaRutinas({ studentId, actualizar }) {
 
   const URL = 'https://vps-5097245-x.dattaweb.com/routines';
 
+  const [coloresDisponibles, setColoresDisponibles] = useState([]);
+  useEffect(() => {
+    fetch('https://vps-5097245-x.dattaweb.com/rutina-colores')
+      .then((res) => res.json())
+      .then((data) => setColoresDisponibles(data));
+  }, []);
   // GLOBALES PARA GESTIONAR LOS MODALES DE ERROR
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTexto, setModalTexto] = useState('');
@@ -300,19 +306,25 @@ function ListaRutinas({ studentId, actualizar }) {
   }
 
   function formatearLineaEnJSX(ejercicio) {
+    // regex: captura descripción y repeticiones (4x12, 3-10, etc)
     const regex = /(.*?)(\d[\d\-xX]*)$/;
     const match = ejercicio.match(regex);
     if (match) {
       const descripcion = match[1].trim();
       const repeticiones = match[2].trim();
       return (
-        <>
-          <span className="font-semibold text-gray-900">{descripcion}</span>
-          <span className="text-gray-500 ml-2">({repeticiones})</span>
-        </>
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold text-gray-900 break-words">
+            {descripcion}
+          </span>
+          <span className="bg-gray-200 text-blue-800 rounded-md px-2 py-0.5 text-xs font-semibold">
+            {repeticiones}
+          </span>
+        </span>
       );
     }
-    return <span>{ejercicio.trim()}</span>;
+    // fallback: todo junto, legible y responsivo
+    return <span className="break-words">{ejercicio.trim()}</span>;
   }
 
   const handleNecesitoAyuda = async (routineId, exerciseId, exerciseName) => {
@@ -401,6 +413,9 @@ function ListaRutinas({ studentId, actualizar }) {
     }
   };
 
+  function getColorById(id) {
+    return coloresDisponibles.find((c) => c.id === id);
+  }
   return (
     <div className="p-6 bg-gray-50 rounded-3xl max-w-2xl mx-auto shadow-2xl ">
       <h2 className="titulo uppercase text-4xl font-bold mb-6 text-center text-gray-800">
@@ -469,6 +484,8 @@ function ListaRutinas({ studentId, actualizar }) {
                       </div>
                       <ul className="space-y-6">
                         {ejercicios.map((ej, idx) => {
+                          const colorData = getColorById(ej.color_id);
+
                           const esEditando =
                             editando &&
                             editando.routineId === rutina.id &&
@@ -481,6 +498,31 @@ function ListaRutinas({ studentId, actualizar }) {
                               key={ej.id}
                               className="flex flex-col bg-slate-50/80 px-6 py-5 rounded-xl shadow border border-gray-200 mb-1"
                             >
+                              {/* PILL DE COLOR – va arriba del contenido, no tapa nada */}
+                              {colorData && (
+                                <span
+                                  className="inline-flex flex-col sm:flex-row sm:items-center gap-1 px-4 py-2 mb-3 w-fit rounded-xl shadow border-2"
+                                  style={{
+                                    background: colorData.color_hex,
+                                    color: '#fff',
+                                    minWidth: 110,
+                                    borderColor: '#fff',
+                                    boxShadow: `0 2px 12px 0 ${colorData.color_hex}33`,
+                                    fontSize: '1rem'
+                                  }}
+                                  title={colorData.descripcion}
+                                >
+                                  <span className="font-bold text-sm drop-shadow">
+                                    {colorData.nombre}
+                                  </span>
+                                  {colorData.descripcion && (
+                                    <span className="text-xs font-normal text-white/80 sm:ml-3 whitespace-pre-line">
+                                      {colorData.descripcion}
+                                    </span>
+                                  )}
+                                </span>
+                              )}
+
                               <div className="flex gap-3 items-center mb-2 w-full">
                                 <span className="text-red-500 text-xl">📌</span>
                                 {esEditando ? (
@@ -532,7 +574,7 @@ function ListaRutinas({ studentId, actualizar }) {
                                   </div>
                                 ) : (
                                   <>
-                                    <span className="font-medium text-lg flex-1">
+                                    <span className="font-medium text-lg flex-1 whitespace-pre-line">
                                       {formatearLineaEnJSX(ej.descripcion)}
                                     </span>
                                     {(userLevel === 'admin' ||
