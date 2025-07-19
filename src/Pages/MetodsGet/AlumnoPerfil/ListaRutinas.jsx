@@ -4,6 +4,7 @@ import { useAuth } from '../../../AuthContext';
 import ModalSuccess from '../../../Components/Forms/ModalSuccess';
 import ModalError from '../../../Components/Forms/ModalError';
 import ModalFeedback from './Feedbacks/ModalFeedback';
+import LogPesoModal from './StudentProgress/LogPesoModal';
 
 const diasSemana = [
   'Domingo',
@@ -47,6 +48,36 @@ function ListaRutinas({ studentId, actualizar }) {
   const [modalErrorVisible, setModalErrorVisible] = useState(false);
   const [modalErrorTexto, setModalErrorTexto] = useState('');
   // GLOBALES PARA GESTIONAR LOS MODALES DE ERROR
+  
+  const [modalOpen, setModalOpen] = useState(false);
+  const [ejercicioActivo, setEjercicioActivo] = useState(null);
+  const [ultimoLog, setUltimoLog] = useState(null);
+  const [historialLogs, setHistorialLogs] = useState([]);
+
+  const handleOpenModal = async (ej) => {
+    setEjercicioActivo({ ...ej, student_id: studentId });
+    setModalOpen(true);
+    setUltimoLog(null);
+    setHistorialLogs([]);
+    try {
+      // Último log
+      const resLast = await axios.get(
+        `https://vps-5097245-x.dattaweb.com/routine_exercise_logs/last?student_id=${studentId}&routine_exercise_id=${ej.id}`
+      );
+      setUltimoLog(resLast.data);
+    } catch {
+      setUltimoLog(null);
+    }
+    try {
+      // Historial mini
+      const resHistory = await axios.get(
+        `https://vps-5097245-x.dattaweb.com/routine_exercise_logs/history?student_id=${studentId}&routine_exercise_id=${ej.id}&limit=3`
+      );
+      setHistorialLogs(resHistory.data || []);
+    } catch {
+      setHistorialLogs([]);
+    }
+  };
 
   const hoy = new Date();
   const nombreDiaHoy = diasSemana[hoy.getDay()];
@@ -416,6 +447,21 @@ function ListaRutinas({ studentId, actualizar }) {
   function getColorById(id) {
     return coloresDisponibles.find((c) => c.id === id);
   }
+
+  const fetchLogsYUltimoLog = async () => {
+    // fetch historial
+    const resHistory = await axios.get(
+      `https://vps-5097245-x.dattaweb.com/routine_exercise_logs/history?student_id=${studentId}&routine_exercise_id=${ejercicioActivo.id}&limit=3`
+    );
+    setHistorialLogs(resHistory.data || []);
+
+    // fetch último log
+    const resLast = await axios.get(
+      `https://vps-5097245-x.dattaweb.com/routine_exercise_logs/last?student_id=${studentId}&routine_exercise_id=${ejercicioActivo.id}`
+    );
+    setUltimoLog(resLast.data || null);
+  };
+
   return (
     <div className="p-6 bg-gray-50 rounded-3xl max-w-2xl mx-auto shadow-2xl ">
       <h2 className="titulo uppercase text-4xl font-bold mb-6 text-center text-gray-800">
@@ -613,7 +659,11 @@ function ListaRutinas({ studentId, actualizar }) {
                               {/* Panel de datos */}
                               <div className="flex flex-wrap gap-4 text-base font-medium text-gray-700 mt-2">
                                 {ej.series && (
-                                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm">
+                                  <span
+                                    className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm cursor-pointer hover:ring-2 ring-blue-200 transition"
+                                    onClick={() => handleOpenModal(ej)}
+                                    title="Cargar registro de peso/reps"
+                                  >
                                     <span>🔁</span>Series:{' '}
                                     <span className="font-bold">
                                       {ej.series}
@@ -621,7 +671,11 @@ function ListaRutinas({ studentId, actualizar }) {
                                   </span>
                                 )}
                                 {ej.repeticiones && (
-                                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm">
+                                  <span
+                                    className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm cursor-pointer hover:ring-2 ring-green-200 transition"
+                                    onClick={() => handleOpenModal(ej)}
+                                    title="Cargar registro de peso/reps"
+                                  >
                                     <span>🔢</span>Reps:{' '}
                                     <span className="font-bold">
                                       {ej.repeticiones}
@@ -629,7 +683,11 @@ function ListaRutinas({ studentId, actualizar }) {
                                   </span>
                                 )}
                                 {ej.tiempo && (
-                                  <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">
+                                  <span
+                                    className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm cursor-pointer hover:ring-2 ring-yellow-200 transition"
+                                    onClick={() => handleOpenModal(ej)}
+                                    title="Cargar registro de peso/reps"
+                                  >
                                     <span>⏱️</span>Tiempo:{' '}
                                     <span className="font-bold">
                                       {ej.tiempo}
@@ -637,7 +695,11 @@ function ListaRutinas({ studentId, actualizar }) {
                                   </span>
                                 )}
                                 {ej.descanso && (
-                                  <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-sm">
+                                  <span
+                                    className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-sm cursor-pointer hover:ring-2 ring-indigo-200 transition"
+                                    onClick={() => handleOpenModal(ej)}
+                                    title="Cargar registro de peso/reps"
+                                  >
                                     <span>💤</span>Descanso:{' '}
                                     <span className="font-bold">
                                       {ej.descanso}
@@ -645,6 +707,7 @@ function ListaRutinas({ studentId, actualizar }) {
                                   </span>
                                 )}
                               </div>
+
                               <div className="flex gap-3 mt-3">
                                 {userLevel === '' && (
                                   <>
@@ -733,6 +796,14 @@ function ListaRutinas({ studentId, actualizar }) {
         onClose={() => setFeedbackModalOpen(false)}
         rutinaId={rutinaFeedbackId}
         studentId={studentId}
+      />
+      <LogPesoModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        ejercicio={ejercicioActivo || {}}
+        ultimoLog={ultimoLog}
+        onSave={fetchLogsYUltimoLog}
+        logs={historialLogs}
       />
     </div>
   );
