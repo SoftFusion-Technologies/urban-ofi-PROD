@@ -374,7 +374,8 @@ const AlumnosGet = () => {
                         </td>
                         <td className="py-2 px-4">
                           <div className="flex flex-col md:flex-row items-center justify-center gap-2">
-                            {userLevel === 'admin' ? (
+                            {userLevel === 'admin' ||
+                            userLevel === 'instructor' ? (
                               <>
                                 <button
                                   onClick={() =>

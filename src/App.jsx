@@ -51,6 +51,7 @@ import RoutinesGet from './Pages/MetodsGet/RoutinesGet';
 import ColoresRutinaCrud from './Pages/MetodsGet/ColoresRutinaCrud';
 import EjerciciosProfesorCrud from './Pages/MetodsGet/EjerciciosProfesorCrud';
 import { useAuth } from './AuthContext';
+import BloquesEjercicio from './Pages/MetodsGet/BloquesEjercicio';
 
 // COMPONENTE CONTENEDOR PARA CONTROLAR LO QUE SE MUESTRA SEGÚN LA RUTA
 function AppContent() {
@@ -103,6 +104,14 @@ function AppContent() {
             </ProtectedRoute>
           }
         />{' '}
+        <Ruta
+          path="/dashboard/configurar-ejercicios/:id"
+          element={
+            <ProtectedRoute>
+              <BloquesEjercicio />
+            </ProtectedRoute>
+          }
+        />
         <Ruta
           path="/dashboard/routines"
           element={

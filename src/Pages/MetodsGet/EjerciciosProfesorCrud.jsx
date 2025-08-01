@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import NavbarStaff from '../staff/NavbarStaff';
+import { useNavigate } from 'react-router-dom';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 // Custom Modal
 function Modal({ open, onClose, children }) {
   if (!open) return null;
@@ -30,7 +32,9 @@ export default function EjerciciosProfesorCrud({ profesorId }) {
   const [feedback, setFeedback] = useState(null);
   const [pagina, setPagina] = useState(1);
   const [paginas, setPaginas] = useState(1);
-  const porPagina = 10;
+  const navigate = useNavigate();
+
+  const porPagina = 26;
   const inputNuevoRef = useRef();
 
   // Animación feedback
@@ -50,10 +54,17 @@ export default function EjerciciosProfesorCrud({ profesorId }) {
   async function cargarEjercicios() {
     setLoading(true);
     try {
-      // Filtra por nombre
-      const res = await axios.get(API_URL, {
-        params: { profesor_id: profesorId, filtro: busqueda }
-      });
+      const params = {};
+
+      // if (profesorId) {
+      //   params.profesor_id = profesorId;
+      // }
+
+      if (busqueda && busqueda.trim()) {
+        params.filtro = busqueda.trim();
+      }
+
+      const res = await axios.get(API_URL, { params });
       setEjercicios(res.data);
       setPaginas(Math.max(1, Math.ceil(res.data.length / porPagina)));
     } catch {
@@ -131,9 +142,9 @@ export default function EjerciciosProfesorCrud({ profesorId }) {
       <NavbarStaff />
       <ParticlesBackground />
 
-      <div className="relative z-10 w-full max-w-2xl mx-auto px-4 pt-8 pb-12">
-        <h2 className="text-3xl font-extrabold text-white mb-5 text-center drop-shadow tracking-tight">
-          🏋️ Ejercicios de Profesor
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 pt-8 pb-12">
+        <h2 className="text-3xl titulo uppercase font-extrabold text-white mb-5 text-center drop-shadow tracking-tight">
+          Ejercicios Definidos
         </h2>
         {/* Buscador y crear */}
         <div className="flex flex-col sm:flex-row gap-3 mb-8 items-center justify-between w-full">
@@ -173,7 +184,7 @@ export default function EjerciciosProfesorCrud({ profesorId }) {
         {/* Feedback animado */}
         {feedback && (
           <div
-            className={`mb-5 px-6 py-3 rounded-xl text-base font-semibold shadow-lg transition-all
+            className={`mb-5 px-6 py-3 rounded-xl  text-sm md:text-base font-semibold shadow-lg transition-all
               ${
                 feedback.tipo === 'error'
                   ? 'bg-red-500/90 text-white animate-shake'
@@ -201,25 +212,42 @@ export default function EjerciciosProfesorCrud({ profesorId }) {
             ejerciciosMostrar.map((ej) => (
               <div
                 key={ej.id}
-                className="rounded-2xl bg-gradient-to-br from-blue-200/70 via-white/90 to-blue-50/80 shadow-2xl px-6 py-5 flex flex-col gap-3 relative hover:scale-[1.02] transition cursor-pointer"
+                onClick={() =>
+                  navigate(`/dashboard/configurar-ejercicios/${ej.id}`)
+                }
+                className="relative group rounded-2xl bg-white/90 shadow-md hover:shadow-xl hover:scale-[1.015] transition-all px-6 py-5 flex flex-col gap-2 cursor-pointer"
               >
-                <span className="text-blue-900 font-bold text-lg">
+                <div className="text-blue-900 font-bold text-xl">
                   {ej.nombre}
-                </span>
-                <div className="flex gap-2 absolute top-3 right-3">
+                </div>
+
+                {ej.profesor?.name && (
+                  <div className="text-sm text-gray-600">
+                    Creado por:{' '}
+                    <span className="font-medium">{ej.profesor.name}</span>
+                  </div>
+                )}
+
+                <div className="absolute top-3 right-3 flex gap-2 z-10">
                   <button
-                    onClick={() => abrirEditar(ej)}
-                    className="text-yellow-600 bg-yellow-50/60 hover:bg-yellow-100/90 rounded-full p-2 shadow transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      abrirEditar(ej);
+                    }}
+                    className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 p-2 rounded-full shadow transition"
                     title="Editar"
                   >
-                    <span className="sr-only">Editar</span>✏️
+                    <FaEdit className="text-sm" />
                   </button>
                   <button
-                    onClick={() => eliminarEjercicio(ej.id)}
-                    className="text-red-600 bg-red-50/60 hover:bg-red-100/90 rounded-full p-2 shadow transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      eliminarEjercicio(ej.id);
+                    }}
+                    className="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-full shadow transition"
                     title="Eliminar"
                   >
-                    <span className="sr-only">Eliminar</span>🗑️
+                    <FaTrash className="text-sm" />
                   </button>
                 </div>
               </div>
@@ -227,36 +255,39 @@ export default function EjerciciosProfesorCrud({ profesorId }) {
           )}
         </div>
         {/* Paginación */}
-        <div className="flex justify-center items-center gap-4 mt-8">
+        <div className="flex justify-center items-center gap-4 mt-10">
           <button
-            className="px-3 py-1 rounded bg-white/10 text-white font-bold shadow hover:bg-white/20 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30 shadow"
             disabled={pagina === 1}
             onClick={() => setPagina((p) => p - 1)}
           >
-            ←
+            ← Anterior
           </button>
-          <span className="text-white/90 font-semibold text-lg">
-            Página <b>{pagina}</b> / {paginas}
+          <span className="text-white text-lg font-medium">
+            Página <strong>{pagina}</strong> de {paginas}
           </span>
           <button
-            className="px-3 py-1 rounded bg-white/10 text-white font-bold shadow hover:bg-white/20 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition disabled:opacity-30 shadow"
             disabled={pagina === paginas || paginas === 0}
             onClick={() => setPagina((p) => p + 1)}
           >
-            →
+            Siguiente →
           </button>
         </div>
       </div>
 
       {/* Modal editar */}
       <Modal open={!!editModal} onClose={() => setEditModal(null)}>
-        <form className="flex flex-col gap-6" onSubmit={guardarEditar}>
-          <h3 className="text-2xl font-extrabold text-blue-800 mb-2">
+        <form
+          className="flex flex-col gap-5 p-6 bg-white rounded-2xl shadow-xl max-w-md w-full mx-auto"
+          onSubmit={guardarEditar}
+        >
+          <h3 className="text-2xl font-bold text-blue-800 text-center">
             Editar ejercicio
           </h3>
           <input
             type="text"
-            className="rounded-xl border border-blue-300 px-4 py-3 text-gray-900 text-lg"
+            className="rounded-xl border border-blue-300 px-4 py-3 text-gray-800 text-base w-full"
             value={editModal?.nombre || ''}
             onChange={(e) =>
               setEditModal({ ...editModal, nombre: e.target.value })
@@ -264,17 +295,17 @@ export default function EjerciciosProfesorCrud({ profesorId }) {
             maxLength={100}
             required
           />
-          <div className="flex gap-4 justify-end">
+          <div className="flex justify-between gap-4 mt-4">
             <button
               type="button"
               onClick={() => setEditModal(null)}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-5 py-2 rounded-lg"
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2 rounded-lg transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 rounded-lg font-bold"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-bold transition"
               disabled={loading}
             >
               Guardar

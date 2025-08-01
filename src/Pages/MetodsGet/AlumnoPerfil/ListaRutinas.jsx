@@ -5,6 +5,111 @@ import ModalSuccess from '../../../Components/Forms/ModalSuccess';
 import ModalError from '../../../Components/Forms/ModalError';
 import ModalFeedback from './Feedbacks/ModalFeedback';
 import LogPesoModal from './StudentProgress/LogPesoModal';
+import { FaTrash } from 'react-icons/fa';
+
+function formatearDescripcionBloque(
+  texto,
+  onVideoClick,
+  onAyudaClick,
+  onEditarLinea,
+  onEliminarLinea,
+  userLevel,
+  rutinaId,
+  ejercicioId,
+  idx,
+  colorHex
+) {
+  const lineas = texto.split('\n').filter((linea) => linea.trim() !== '');
+  function esColorOscuro(hex) {
+    if (!hex) return false;
+    const color = hex.replace('#', '');
+    const r = parseInt(color.substring(0, 2), 16);
+    const g = parseInt(color.substring(2, 4), 16);
+    const b = parseInt(color.substring(4, 6), 16);
+    const luminancia = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luminancia < 128; // Si es menor a 128, es oscuro
+  }
+
+  return (
+    <div className="flex flex-col gap-3 mt-1">
+      {lineas.map((linea, lineaIdx) => {
+        const clean = linea.trim();
+
+        const esTitulo =
+          /[:：]\s*$/.test(clean) || // termina en :
+          /^(D[ií]a|Circuito|Parte|Bloque|Desp|Final|Intro|Sección|Seccion|Nota)/i.test(
+            clean
+          ) ||
+          /^[A-ZÁÉÍÓÚÜÑ\s]{3,30}$/.test(clean); // línea en mayúsculas, sin números, típica de títulos
+
+        if (esTitulo) {
+          return (
+            <div
+              key={lineaIdx}
+              className="text-sm font-bold uppercase tracking-wide"
+              style={{
+                color: esColorOscuro(colorHex) ? '#ffffff' : '#1e40af' // azul oscuro solo si es fondo claro
+              }}
+            >
+              {clean.replace(/[:：]\s*$/, '')}
+            </div>
+          );
+        }
+
+        return (
+          <div
+            key={lineaIdx}
+            className="bg-white/90 border border-gray-300 rounded-lg p-3 flex flex-col gap-1 shadow-sm"
+          >
+            <div className="text-sm text-gray-800 whitespace-pre-line">
+              {clean}
+            </div>
+
+            <div className="flex flex-wrap justify-between items-center gap-2 mt-1">
+              {userLevel === '' && (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => onVideoClick(clean)}
+                    className="text-blue-600 hover:underline text-xs font-semibold"
+                  >
+                    Ver video
+                  </button>
+                  <button
+                    onClick={() => onAyudaClick(clean)}
+                    className="text-green-600 hover:underline text-xs font-semibold"
+                  >
+                    Necesito Ayuda
+                  </button>
+                </div>
+              )}
+
+              {(userLevel === 'admin' || userLevel === 'instructor') && (
+                <div className="flex gap-3 ml-auto">
+                  <button
+                    onClick={() =>
+                      onEditarLinea(rutinaId, ejercicioId, idx, clean, lineaIdx)
+                    }
+                    className="text-yellow-600 hover:underline text-xs font-semibold"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() =>
+                      onEliminarLinea(rutinaId, ejercicioId, idx, clean)
+                    }
+                    className="text-red-600 hover:underline text-xs font-semibold"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 const diasSemana = [
   'Domingo',
@@ -42,13 +147,14 @@ function ListaRutinas({ studentId, actualizar }) {
       .then((res) => res.json())
       .then((data) => setColoresDisponibles(data));
   }, []);
+
   // GLOBALES PARA GESTIONAR LOS MODALES DE ERROR
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTexto, setModalTexto] = useState('');
   const [modalErrorVisible, setModalErrorVisible] = useState(false);
   const [modalErrorTexto, setModalErrorTexto] = useState('');
   // GLOBALES PARA GESTIONAR LOS MODALES DE ERROR
-  
+
   const [modalOpen, setModalOpen] = useState(false);
   const [ejercicioActivo, setEjercicioActivo] = useState(null);
   const [ultimoLog, setUltimoLog] = useState(null);
@@ -140,88 +246,46 @@ function ListaRutinas({ studentId, actualizar }) {
   const handleGuardarEdicion = async (
     routineId,
     exerciseId,
-    lineaIndex,
-    textoEditado
+    ejercicioIndex,
+    textoEditado,
+    textoOriginal = '' // Valor por defecto para evitar errores
   ) => {
     try {
       setLoadingEdit(true);
 
-      // Encontrar la rutina y el ejercicio actual
-      const rutina = rutinas.find((r) => r.id === routineId);
-      if (!rutina) throw new Error('Rutina no encontrada');
-
-      const ejercicio = rutina.exercises.find((ej) => ej.id === exerciseId);
-      if (!ejercicio) throw new Error('Ejercicio no encontrado');
-
-      // Dividir la descripción actual en líneas
-      const lineas = ejercicio.descripcion.split(/\n|(?=\d+\s?[xX]\s?\d+)/g);
-
-      // Comprobar si el texto editado es igual a la línea original
-      if (lineas[lineaIndex] === textoEditado.trim()) {
-        // No hubo cambios, salir del modo edición y no hacer nada
-        setEditando(null);
-        setLoadingEdit(false);
+      // Validaciones iniciales
+      if (!textoEditado || !textoOriginal) {
+        alert('Error: Faltan datos para editar');
         return;
       }
 
-      // Reemplazar solo la línea editada por el texto nuevo
-      lineas[lineaIndex] = textoEditado;
-
-      // Volver a unir todas las líneas en una sola descripción
-      const descripcionActualizada = lineas.join('\n').trim();
-
-      // Llamar a la API con la descripción completa actualizada
-      await axios.put(`${URL}/${routineId}/routines_exercises/${exerciseId}`, {
-        descripcion: descripcionActualizada
+      console.log('📝 Datos para editar:', {
+        routineId,
+        exerciseId,
+        ejercicioIndex,
+        textoOriginal,
+        textoEditado
       });
 
-      // Actualizar el estado local
-      setRutinas((prevRutinas) =>
-        prevRutinas.map((rutina) => {
-          if (rutina.id === routineId) {
-            return {
-              ...rutina,
-              exercises: rutina.exercises.map((ej) => {
-                if (ej.id === exerciseId) {
-                  return { ...ej, descripcion: descripcionActualizada };
-                }
-                return ej;
-              })
-            };
-          }
-          return rutina;
-        })
-      );
-
-      setEditando(null);
-    } catch (error) {
-      alert('Error al guardar la edición');
-    } finally {
-      setLoadingEdit(false);
-    }
-  };
-
-  const handleEliminarLinea = async (routineId, exerciseId, lineaIndex) => {
-    try {
-      setLoading(true);
-
-      // Buscar la rutina y ejercicio
+      // Buscar rutina
       const rutina = rutinas.find((r) => r.id === routineId);
       if (!rutina) throw new Error('Rutina no encontrada');
 
+      // Buscar ejercicio
       const ejercicio = rutina.exercises.find((ej) => ej.id === exerciseId);
       if (!ejercicio) throw new Error('Ejercicio no encontrado');
 
-      // Dividir la descripción en líneas o valores (por espacio o salto de línea)
-      let lineas = ejercicio.descripcion.split(/\n|(?=\d+\s?[xX]\s?\d+)/g);
+      // Reemplazar la línea exacta por coincidencia de contenido
+      const lineas = ejercicio.descripcion.split('\n');
+      const nuevasLineas = lineas.map((linea) => {
+        return linea.trim() === textoOriginal.trim()
+          ? textoEditado.trim()
+          : linea;
+      });
 
-      // Eliminar la línea (valor) por índice
-      lineas.splice(lineaIndex, 1);
+      const descripcionActualizada = nuevasLineas.join('\n').trim();
 
-      // Volver a unir la descripción
-      const descripcionActualizada = lineas.join(' ').trim();
-
-      // Actualizar la descripción en backend (PUT)
+      // Enviar la actualización
       await axios.put(`${URL}/${routineId}/routines_exercises/${exerciseId}`, {
         descripcion: descripcionActualizada
       });
@@ -243,7 +307,74 @@ function ListaRutinas({ studentId, actualizar }) {
           return rutina;
         })
       );
+
+      setEditando(null);
     } catch (error) {
+      console.error('Error al guardar la edición:', error);
+      alert('Error al guardar la edición');
+    } finally {
+      setLoadingEdit(false);
+    }
+  };
+
+  const handleEliminarLinea = async (
+    routineId,
+    exerciseId,
+    ejercicioIndex,
+    lineaTexto // este es el texto de la línea, ej: "Push-ups: 15"
+  ) => {
+    try {
+      setLoading(true);
+
+      const rutina = rutinas.find((r) => r.id === routineId);
+      if (!rutina) throw new Error('Rutina no encontrada');
+
+      const ejercicio = rutina.exercises.find((ej) => ej.id === exerciseId);
+      if (!ejercicio) throw new Error('Ejercicio no encontrado');
+
+      const lineas = ejercicio.descripcion.split('\n');
+
+      const indexToRemove = lineas.findIndex(
+        (linea) =>
+          linea.trim().toLowerCase().replace(/\s+/g, ' ') ===
+          lineaTexto.trim().toLowerCase().replace(/\s+/g, ' ')
+      );
+
+      if (indexToRemove === -1) {
+        console.error('No se encontró la línea exacta');
+        alert('No se encontró la línea a eliminar');
+        return;
+      }
+
+      // Eliminar la línea
+      lineas.splice(indexToRemove, 1);
+
+      const descripcionActualizada = lineas.join('\n').trim();
+
+      // Enviar al backend
+      await axios.put(`${URL}/${routineId}/routines_exercises/${exerciseId}`, {
+        descripcion: descripcionActualizada
+      });
+
+      // Actualizar estado local
+      setRutinas((prevRutinas) =>
+        prevRutinas.map((r) => {
+          if (r.id === routineId) {
+            return {
+              ...r,
+              exercises: r.exercises.map((ej) => {
+                if (ej.id === exerciseId) {
+                  return { ...ej, descripcion: descripcionActualizada };
+                }
+                return ej;
+              })
+            };
+          }
+          return r;
+        })
+      );
+    } catch (error) {
+      console.error('ERROR real:', error);
       alert('Error al eliminar la línea');
     } finally {
       setLoading(false);
@@ -284,79 +415,6 @@ function ListaRutinas({ studentId, actualizar }) {
       alert('Error al eliminar ejercicios del músculo.');
     }
   };
-
-  function agruparLineas(lineas) {
-    const agrupadas = [];
-    let buffer = '';
-
-    // Palabras que indican continuación probable aunque empiece con mayúscula
-    const palabrasContinuacion = [
-      'EN',
-      'CON',
-      'DE',
-      'Y',
-      'O',
-      'A',
-      'POR',
-      'SIN'
-    ];
-
-    for (let linea of lineas) {
-      linea = linea.trim();
-      if (!linea) continue;
-
-      const esSerie = /^[\d\s\-xX+()]+$/.test(linea) || /^\(?\d/.test(linea);
-      const tieneMarcador = /^[●*📌]/.test(linea);
-      const primeraPalabra = linea.split(' ')[0].toUpperCase();
-
-      if (esSerie && buffer) {
-        // Si es serie y ya hay buffer, unir y guardar
-        buffer += ' ' + linea;
-        agrupadas.push(buffer.trim());
-        buffer = '';
-      } else if (esSerie) {
-        // Serie sola
-        agrupadas.push(linea.trim());
-      } else if (tieneMarcador) {
-        // Nueva descripción clara (marca delante)
-        if (buffer) agrupadas.push(buffer.trim());
-        buffer = linea;
-      } else if (buffer && palabrasContinuacion.includes(primeraPalabra)) {
-        // Si la línea comienza con palabra de continuación, unir con buffer
-        buffer += ' ' + linea;
-      } else {
-        // Nueva descripción (o primera)
-        if (buffer) agrupadas.push(buffer.trim());
-        buffer = linea;
-      }
-    }
-
-    if (buffer) agrupadas.push(buffer.trim());
-
-    return agrupadas;
-  }
-
-  function formatearLineaEnJSX(ejercicio) {
-    // regex: captura descripción y repeticiones (4x12, 3-10, etc)
-    const regex = /(.*?)(\d[\d\-xX]*)$/;
-    const match = ejercicio.match(regex);
-    if (match) {
-      const descripcion = match[1].trim();
-      const repeticiones = match[2].trim();
-      return (
-        <span className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-gray-900 break-words">
-            {descripcion}
-          </span>
-          <span className="bg-gray-200 text-blue-800 rounded-md px-2 py-0.5 text-xs font-semibold">
-            {repeticiones}
-          </span>
-        </span>
-      );
-    }
-    // fallback: todo junto, legible y responsivo
-    return <span className="break-words">{ejercicio.trim()}</span>;
-  }
 
   const handleNecesitoAyuda = async (routineId, exerciseId, exerciseName) => {
     try {
@@ -481,31 +539,37 @@ function ListaRutinas({ studentId, actualizar }) {
                 ejerciciosPorMusculo[ej.musculo] = [];
               }
               ejerciciosPorMusculo[ej.musculo].push(ej);
+              console.log(rutina);
             });
 
             return (
               <div key={rutina.id}>
-                {(userLevel === 'admin' || userLevel === 'instructor') && (
-                  <div className="flex justify-end mb-2">
-                    <button
-                      onClick={() => handleEliminarRutina(rutina.id)}
-                      className="text-red-600 hover:text-red-700 text-sm font-semibold"
-                    >
-                      🗑️ Eliminar rutina completa
-                    </button>
-                  </div>
-                )}
-
                 {Object.entries(ejerciciosPorMusculo).map(
                   ([musculo, ejercicios]) => (
                     <div
                       key={musculo}
                       className="rounded-2xl bg-white/90 p-8 shadow-xl border border-blue-100 mb-12"
                     >
+                      {(userLevel === 'admin' ||
+                        userLevel === 'instructor') && (
+                        <div className="flex justify-end mb-2">
+                          <button
+                            onClick={() => handleEliminarRutina(rutina.id)}
+                            className="text-red-600 hover:text-red-700 text-sm font-semibold"
+                          >
+                            Eliminar rutina:{' '}
+                            {rutina.exercises
+                              ?.map((ej) => ej.musculo)
+                              .join(', ')}
+                          </button>
+                        </div>
+                      )}
+
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                         <h3 className="font-extrabold text-3xl text-blue-700 tracking-tight">
                           {musculo.toUpperCase()}
                         </h3>
+
                         {(userLevel === 'admin' ||
                           userLevel === 'instructor') && (
                           <div className="flex gap-4">
@@ -542,7 +606,13 @@ function ListaRutinas({ studentId, actualizar }) {
                           return (
                             <li
                               key={ej.id}
-                              className="flex flex-col bg-slate-50/80 px-6 py-5 rounded-xl shadow border border-gray-200 mb-1"
+                              className="flex flex-col px-6 py-5 rounded-xl shadow mb-1"
+                              style={{
+                                backgroundColor: `${
+                                  colorData?.color_hex || '#f8fafc'
+                                }`, // por defecto slate-50
+                                border: '1px solid #e5e7eb' // gris claro similar a border-gray-200
+                              }}
                             >
                               {/* PILL DE COLOR – va arriba del contenido, no tapa nada */}
                               {colorData && (
@@ -570,26 +640,31 @@ function ListaRutinas({ studentId, actualizar }) {
                               )}
 
                               <div className="flex gap-3 items-center mb-2 w-full">
-                                <span className="text-red-500 text-xl">📌</span>
+                                <span className="text-red-500 text-xl"></span>
                                 {esEditando ? (
                                   <div className="w-full flex flex-col sm:flex-row gap-2">
                                     <input
                                       type="text"
                                       className="border border-gray-300 rounded px-3 py-2 flex-1 max-w-full sm:max-w-[220px]"
-                                      value={textoEditado}
-                                      autoFocus
+                                      value={editando?.textoEditado || ''}
                                       onChange={(e) =>
-                                        setTextoEditado(e.target.value)
+                                        setEditando((prev) => ({
+                                          ...prev,
+                                          textoEditado: e.target.value
+                                        }))
                                       }
+                                      autoFocus
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                           handleGuardarEdicion(
-                                            rutina.id,
-                                            ej.id,
-                                            idx,
-                                            textoEditado
+                                            editando?.routineId,
+                                            editando?.exerciseId,
+                                            editando?.ejercicioIndex,
+                                            editando?.textoEditado,
+                                            editando?.textoOriginal
                                           );
                                         }
+
                                         if (e.key === 'Escape')
                                           setEditando(null);
                                       }}
@@ -598,10 +673,11 @@ function ListaRutinas({ studentId, actualizar }) {
                                       <button
                                         onClick={() =>
                                           handleGuardarEdicion(
-                                            rutina.id,
-                                            ej.id,
-                                            idx,
-                                            textoEditado
+                                            editando?.routineId,
+                                            editando?.exerciseId,
+                                            editando?.ejercicioIndex,
+                                            editando?.textoEditado,
+                                            editando?.textoOriginal
                                           )
                                         }
                                         className="text-green-600 hover:text-green-800 text-xl"
@@ -620,38 +696,49 @@ function ListaRutinas({ studentId, actualizar }) {
                                   </div>
                                 ) : (
                                   <>
-                                    <span className="font-medium text-lg flex-1 whitespace-pre-line">
-                                      {formatearLineaEnJSX(ej.descripcion)}
-                                    </span>
-                                    {(userLevel === 'admin' ||
-                                      userLevel === 'instructor') && (
-                                      <div className="flex flex-wrap gap-2 ml-2 mt-2 md:mt-0">
-                                        <button
-                                          onClick={() => {
-                                            setEditando({
-                                              routineId: rutina.id,
-                                              exerciseId: ej.id,
-                                              lineaIndex: idx
-                                            });
-                                            setTextoEditado(ej.descripcion);
-                                          }}
-                                          className="text-yellow-600 hover:underline text-xs font-semibold"
-                                        >
-                                          Editar
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            handleEliminarLinea(
-                                              rutina.id,
-                                              ej.id,
-                                              idx
-                                            )
-                                          }
-                                          className="text-red-600 hover:underline text-xs font-semibold"
-                                        >
-                                          Eliminar
-                                        </button>
-                                      </div>
+                                    {formatearDescripcionBloque(
+                                      ej.descripcion,
+                                      (linea) =>
+                                        window.open(
+                                          `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                                            linea
+                                          )}`,
+                                          '_blank'
+                                        ),
+                                      (linea) =>
+                                        handleNecesitoAyuda(
+                                          rutina.id,
+                                          ej.id,
+                                          linea
+                                        ),
+                                      (
+                                        routineId,
+                                        exerciseId,
+                                        idx,
+                                        linea,
+                                        lineaIdx
+                                      ) => {
+                                        setEditando({
+                                          routineId,
+                                          exerciseId,
+                                          ejercicioIndex: idx,
+                                          sublineaIndex: lineaIdx,
+                                          textoOriginal: linea,
+                                          textoEditado: linea
+                                        });
+                                      },
+                                      (routineId, exerciseId, idx, lineaIdx) =>
+                                        handleEliminarLinea(
+                                          rutina.id,
+                                          ej.id,
+                                          idx,
+                                          lineaIdx // <- el subíndice real
+                                        ),
+                                      userLevel,
+                                      rutina.id,
+                                      ej.id,
+                                      idx,
+                                      colorData?.color_hex // <--- NUEVO
                                     )}
                                   </>
                                 )}
@@ -705,38 +792,6 @@ function ListaRutinas({ studentId, actualizar }) {
                                       {ej.descanso}
                                     </span>
                                   </span>
-                                )}
-                              </div>
-
-                              <div className="flex gap-3 mt-3">
-                                {userLevel === '' && (
-                                  <>
-                                    <button
-                                      onClick={() =>
-                                        window.open(
-                                          `https://www.youtube.com/results?search_query=${encodeURIComponent(
-                                            musculo + ' ' + ej.descripcion
-                                          )}`,
-                                          '_blank'
-                                        )
-                                      }
-                                      className="text-blue-500 hover:underline text-base font-semibold"
-                                    >
-                                      Ver video
-                                    </button>
-                                    <button
-                                      className="text-green-600 hover:underline text-base font-semibold"
-                                      onClick={() =>
-                                        handleNecesitoAyuda(
-                                          rutina.id,
-                                          ej.id,
-                                          ej.descripcion
-                                        )
-                                      }
-                                    >
-                                      Necesito Ayuda
-                                    </button>
-                                  </>
                                 )}
                               </div>
                             </li>
