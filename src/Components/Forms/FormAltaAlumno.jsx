@@ -82,7 +82,6 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
         valores.nomyape === '' ||
         valores.telefono === '' ||
         valores.dni === '' ||
-        valores.objetivo === '' ||
         !valores.user_id
       ) {
         alert('Por favor, complete todos los campos obligatorios.');

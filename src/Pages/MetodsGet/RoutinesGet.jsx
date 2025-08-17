@@ -5,7 +5,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import NavbarStaff from '../staff/NavbarStaff';
 import ParticlesBackground from '../../Components/ParticlesBackground';
-
+import ButtonBack from '../../Components/ButtonBack'
 export default function RoutinesGet() {
   const [rutinas, setRutinas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +48,7 @@ export default function RoutinesGet() {
   if (loading)
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800">
-        <NavbarStaff />
+        <ButtonBack />
         <ParticlesBackground />
         <div className="w-60 h-12 rounded-xl bg-white/20 animate-pulse mb-3"></div>
         <div className="w-80 h-36 rounded-2xl bg-white/10 animate-pulse"></div>
@@ -59,7 +59,7 @@ export default function RoutinesGet() {
   if (rutinas.length === 0)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800">
-        <NavbarStaff />
+        <ButtonBack />
         <ParticlesBackground />
         <p className="text-center text-white/90 text-lg">
           No hay rutinas disponibles.
@@ -71,7 +71,6 @@ export default function RoutinesGet() {
     <>
       <NavbarStaff />
       <ParticlesBackground />
-
       <div className="relative min-h-screen bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 pt-24 pb-20 px-2 sm:px-4">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}

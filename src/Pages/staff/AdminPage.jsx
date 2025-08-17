@@ -7,7 +7,7 @@ import '../../Styles/staff/background.css';
 // import Footer from '../../components/footer/Footer';
 import { useAuth } from '../../AuthContext';
 import ParticlesBackground from '../../Components/ParticlesBackground';
-
+import NotificationsHelps from '../MetodsGet/NotificationsHelps';
 const AdminPage = () => {
   const [modalPreguntasOpen, setModalPreguntasOpen] = useState(false);
   const [modalDetalleOpen, setModalDetalleOpen] = useState(false);
@@ -15,7 +15,7 @@ const AdminPage = () => {
   const [preguntaSeleccionada, setPreguntaSeleccionada] = useState(null);
   const URL = 'https://vps-5097245-x.dattaweb.com/ask/';
 
-  const { userLevel } = useAuth();
+  const { userLevel, userId } = useAuth();
 
   const abrirModalPreguntas = async () => {
     try {
@@ -71,6 +71,14 @@ const AdminPage = () => {
 
             {(userLevel === 'admin' || userLevel === 'instructor') && (
               <div className="bg-white font-bignoodle w-[250px] h-[100px] text-[20px] lg:w-[400px] lg:h-[150px] lg:text-[30px] mx-auto flex justify-center items-center rounded-tr-xl rounded-bl-xl">
+                <Link to="/dashboard/ejercicios">
+                  <button className="btnstaff">Ejercicios</button>
+                </Link>
+              </div>
+            )}
+
+            {(userLevel === 'admin' || userLevel === 'instructor') && (
+              <div className="bg-white font-bignoodle w-[250px] h-[100px] text-[20px] lg:w-[400px] lg:h-[150px] lg:text-[30px] mx-auto flex justify-center items-center rounded-tr-xl rounded-bl-xl">
                 <Link to="/dashboard/students">
                   <button className="btnstaff">Alumnos</button>
                 </Link>
@@ -78,22 +86,22 @@ const AdminPage = () => {
             )}
 
             {(userLevel === 'admin' ||
-              userLevel === 'administrador' ||
-              userLevel === 'instructor' ||
-              userLevel === 'gerente') && (
-              <div className="bg-white font-bignoodle w-[250px] h-[100px] text-[20px] lg:w-[400px] lg:h-[150px] lg:text-[30px] mx-auto flex justify-center items-center rounded-tr-xl rounded-bl-xl">
-                <Link to="/dashboard/students-pendientes">
-                  <button className="btnstaff">Pendientes</button>
-                </Link>
-              </div>
-            )}
-            {(userLevel === 'admin' ||
               userLevel === 'instructor' ||
               userLevel === 'gerente' ||
               userLevel === 'vendedor') && (
               <div className="bg-white font-bignoodle w-[250px] h-[100px] text-[20px] lg:w-[400px] lg:h-[150px] lg:text-[30px] mx-auto flex justify-center items-center rounded-tr-xl rounded-bl-xl">
                 <Link to="/dashboard/routines">
                   <button className="btnstaff">Rutinas</button>
+                </Link>
+              </div>
+            )}
+            {(userLevel === 'admin' ||
+              userLevel === 'administrador' ||
+              userLevel === 'instructor' ||
+              userLevel === 'gerente') && (
+              <div className="bg-white font-bignoodle w-[250px] h-[100px] text-[20px] lg:w-[400px] lg:h-[150px] lg:text-[30px] mx-auto flex justify-center items-center rounded-tr-xl rounded-bl-xl">
+                <Link to="/dashboard/students-pendientes">
+                  <button className="btnstaff">Pendientes</button>
                 </Link>
               </div>
             )}
@@ -121,6 +129,7 @@ const AdminPage = () => {
           </div>
         </div>
       </section>
+      <NotificationsHelps instructorId={userId}></NotificationsHelps>
     </>
   );
 };

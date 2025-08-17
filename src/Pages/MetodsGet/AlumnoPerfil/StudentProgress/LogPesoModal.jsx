@@ -5,7 +5,8 @@ import { useState, useEffect, useRef } from 'react';
 export default function LogPesoModal({
   open,
   onClose,
-  ejercicio,
+  ejercicio, // { id?, nombre?, student_id ... }
+  serie, // { id, numero_serie, ... }  <<--- NUEVO
   ultimoLog,
   onSave,
   logs = []
@@ -17,30 +18,28 @@ export default function LogPesoModal({
   const [editLogId, setEditLogId] = useState(null);
   const inputRef = useRef(null);
 
-  // Cuando abro el modal o cambia el log a editar, reseteo o cargo valores
+  // Al abrir/cambiar modo edición → setear valores
   useEffect(() => {
-    if (open) {
-      if (editLogId) {
-        // Si está en modo edición, buscar el log y setear valores
-        const log = logs.find((l) => l.id === editLogId);
-        setPeso(log ? log.peso : '');
-        setObs(log ? log.observaciones : '');
-        setMensaje('');
-        setTimeout(() => inputRef.current?.focus(), 150);
-      } else {
-        // Si NO, es alta: limpiar campos
-        setPeso('');
-        setObs('');
-        setMensaje('');
-        setTimeout(() => inputRef.current?.focus(), 150);
-      }
+    if (!open) return;
+    if (editLogId) {
+      const log = logs.find((l) => l.id === editLogId);
+      setPeso(log ? String(log.peso ?? '') : '');
+      setObs(log ? log.observaciones ?? '' : '');
+    } else {
+      setPeso('');
+      setObs('');
     }
+    setMensaje('');
+    const t = setTimeout(() => inputRef.current?.focus(), 150);
+    return () => clearTimeout(t);
   }, [open, editLogId, logs]);
 
-  // GUARDAR: Nuevo o Edición
+  // GUARDAR (nuevo o edición)
   const handleGuardar = async () => {
     if (loading) return;
-    if (!peso || isNaN(peso) || Number(peso) <= 0 || Number(peso) > 999.99) {
+
+    const n = Number(peso);
+    if (!peso || isNaN(n) || n <= 0 || n > 999.99) {
       setMensaje('Ingresá un peso válido (0.01 a 999.99 kg)');
       return;
     }
@@ -63,29 +62,31 @@ export default function LogPesoModal({
           }
         );
       } else {
-        // NUEVO LOG
+        // NUEVO LOG  (usa serie_id en lugar de routine_exercise_id)
         res = await fetch('https://vps-5097245-x.dattaweb.com/routine_exercise_logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            routine_exercise_id: ejercicio.id,
-            student_id: ejercicio.student_id,
+            serie_id: serie?.id, // 👈 obligatorio ahora
+            student_id: ejercicio?.student_id, // alumno activo
             fecha: new Date().toISOString().slice(0, 10),
             peso: parseFloat(peso),
             observaciones: obs
           })
         });
       }
+
       if (res.ok) {
         setMensaje(
           editLogId ? 'Registro actualizado ✔' : 'Registro guardado ✔'
         );
-
         setTimeout(() => {
           onSave && onSave();
-          if (editLogId)
-            setEditLogId(null); // Salir de edición pero NO cerrar modal
-          else onClose();
+          if (editLogId) {
+            setEditLogId(null); // seguir en el modal, pero salir de edición
+          } else {
+            onClose();
+          }
         }, 900);
       } else {
         setMensaje('Hubo un error al guardar. Intenta de nuevo.');
@@ -105,14 +106,12 @@ export default function LogPesoModal({
     try {
       const res = await fetch(
         `https://vps-5097245-x.dattaweb.com/routine_exercise_logs/${logId}`,
-        {
-          method: 'DELETE'
-        }
+        { method: 'DELETE' }
       );
       if (res.ok) {
         setMensaje('Registro eliminado ✔');
         setTimeout(() => {
-          onSave && onSave(); // 🔥 REFRESCA LOS LOGS DEL PADRE
+          onSave && onSave();
           setEditLogId(null);
           setMensaje('');
         }, 700);
@@ -126,9 +125,7 @@ export default function LogPesoModal({
   };
 
   // EDITAR: carga log en el formulario
-  const editarLog = (log) => {
-    setEditLogId(log.id);
-  };
+  const editarLog = (log) => setEditLogId(log.id);
 
   // CANCELAR EDICIÓN
   const cancelarEdicion = () => {
@@ -138,7 +135,6 @@ export default function LogPesoModal({
     setMensaje('');
   };
 
-  // Determinar si es modo edición
   const enEdicion = Boolean(editLogId);
 
   return (
@@ -177,22 +173,26 @@ export default function LogPesoModal({
           >
             &times;
           </button>
-          {/* Título y último peso */}
+
+          {/* Título */}
           <h2 className="text-2xl font-bold mb-1 text-blue-700">
-            {ejercicio.musculo} - {ejercicio.descripcion}
+            {ejercicio?.nombre || 'Ejercicio'}
+            {serie?.numero_serie ? ` — Serie ${serie.numero_serie}` : ''}
           </h2>
+
+          {/* Último peso */}
           <div className="text-sm text-gray-500 mb-4">
             {ultimoLog ? (
               <>
-                Último peso: <b>{ultimoLog.peso} kg</b> - {ultimoLog.fecha}
+                Último peso: <b>{ultimoLog.peso} kg</b> — {ultimoLog.fecha}
               </>
             ) : (
               <i>Sin registros previos</i>
             )}
           </div>
 
-          {/* Historial */}
-          {logs && logs.length > 0 && (
+          {/* Historial (edición rápida) */}
+          {logs?.length > 0 && (
             <div className="mb-4">
               <div className="text-xs font-bold text-blue-600 mb-1">
                 Historial:
@@ -201,9 +201,9 @@ export default function LogPesoModal({
                 {logs.slice(0, 3).map((l) => (
                   <div
                     key={l.id}
-                    className={`flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 shadow-sm
-            ${editLogId === l.id ? 'ring-2 ring-blue-400' : ''}
-          `}
+                    className={`flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 shadow-sm ${
+                      editLogId === l.id ? 'ring-2 ring-blue-400' : ''
+                    }`}
                   >
                     <div className="flex flex-col leading-4">
                       <span className="text-[12px] text-gray-700">
@@ -261,7 +261,7 @@ export default function LogPesoModal({
             />
           </div>
 
-          {/* Botones Guardar / Cancelar */}
+          {/* Botones */}
           <div className="flex gap-3 mt-5">
             <button
               className={`flex-1 py-2 rounded-xl text-lg font-bold transition ${
@@ -270,7 +270,14 @@ export default function LogPesoModal({
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
               onClick={handleGuardar}
-              disabled={loading}
+              disabled={loading || !serie?.id || !ejercicio?.student_id}
+              title={
+                !serie?.id
+                  ? 'Falta serie_id'
+                  : !ejercicio?.student_id
+                  ? 'Falta student_id'
+                  : ''
+              }
             >
               {enEdicion
                 ? loading
@@ -280,6 +287,7 @@ export default function LogPesoModal({
                 ? 'Guardando...'
                 : 'Guardar registro'}
             </button>
+
             {enEdicion && (
               <button
                 className="flex-1 py-2 rounded-xl text-lg font-bold bg-gray-200 hover:bg-gray-300 text-gray-700 transition"
@@ -290,6 +298,7 @@ export default function LogPesoModal({
               </button>
             )}
           </div>
+
           {/* Feedback */}
           {mensaje && (
             <div

@@ -52,6 +52,10 @@ import ColoresRutinaCrud from './Pages/MetodsGet/ColoresRutinaCrud';
 import EjerciciosProfesorCrud from './Pages/MetodsGet/EjerciciosProfesorCrud';
 import { useAuth } from './AuthContext';
 import BloquesEjercicio from './Pages/MetodsGet/BloquesEjercicio';
+import EjerciciosCatalogo from './Pages/Components/EjerciciosCatalogo';
+import LogsGlobalAlumno from './Pages/MetodsGet/AlumnoPerfil/LogsGlobalAlumno';
+import RutinasExplorer from './Pages/MetodsGet/RutinasExplorer';
+import PSEDashboard from './Pages/MetodsGet/PSEDashboard';
 
 // COMPONENTE CONTENEDOR PARA CONTROLAR LO QUE SE MUESTRA SEGÚN LA RUTA
 function AppContent() {
@@ -117,7 +121,7 @@ function AppContent() {
           element={
             <ProtectedRoute>
               {' '}
-              <RoutinesGet />{' '}
+              <RutinasExplorer />{' '}
             </ProtectedRoute>
           }
         />{' '}
@@ -127,6 +131,24 @@ function AppContent() {
             <ProtectedRoute>
               {' '}
               <InstructoresGet />{' '}
+            </ProtectedRoute>
+          }
+        />{' '}
+        <Ruta
+          path="/dashboard/ejercicios"
+          element={
+            <ProtectedRoute>
+              {' '}
+              <EjerciciosCatalogo />{' '}
+            </ProtectedRoute>
+          }
+        />{' '}
+        <Ruta
+          path="/dashboard/logs-global"
+          element={
+            <ProtectedRoute>
+              {' '}
+              <LogsGlobalAlumno />{' '}
             </ProtectedRoute>
           }
         />{' '}
@@ -185,10 +207,10 @@ function AppContent() {
           }
         />{' '}
         <Ruta
-          path="/dashboard/feedbacks"
+          path="/dashboard/pse"
           element={
             <ProtectedRoute>
-              <FeedbackPage />
+              <PSEDashboard />
             </ProtectedRoute>
           }
         />

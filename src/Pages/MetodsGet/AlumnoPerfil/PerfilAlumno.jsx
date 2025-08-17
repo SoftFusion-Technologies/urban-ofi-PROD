@@ -8,24 +8,51 @@ import {
   FaUserCog,
   FaUsers,
   FaCubes,
-  FaDumbbell
+  FaDumbbell,
+  FaPlusCircle,
+  FaClipboardList,
+  FaWeightHanging,
+  FaChartLine
 } from 'react-icons/fa';
+
 import NavbarStaff from '../../staff/NavbarStaff';
 import ParticlesBackground from '../../../Components/ParticlesBackground';
 import axios from 'axios';
 import { useAuth } from '../../../AuthContext';
-import Modal from '../../../Components/Modal';
-import FormCrearRutina from '../AlumnoPerfil/FormCrearRutina';
-import ListaRutinas from './ListaRutinas';
-import ProtectedRoutine from './ProtectedRoutine';
-import RutinasConDuracion from './RutinasConDuracion';
+
 import { useNavigate } from 'react-router-dom';
 import StudentGoalModal from './StudentProgress/StudentGoalModal';
 import StudentMonthlyGoalDetail from './StudentProgress/StudentMonthlyGoalDetail';
 import EstadisticasRutinas from './Estadisticas/EstadisticasRutinas';
 import { motion } from 'framer-motion';
-import FormCrearRutinaPorBloques from './FormCrearRutinaPorBloques';
+import ModalCrearRutina from './ModalCrearRutina';
+import RutinaPorBloques from './RutinaPorBloques';
+import RutinaVigentePorBloques from './RutinaVigentePorBloques';
 
+function ActionButton({ onClick, icon: Icon, label, className = '' }) {
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        // base
+        'group relative inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold text-white',
+        'shadow-sm ring-1 ring-black/5 transition-all duration-200',
+        'focus:outline-none focus-visible:ring-4 focus-visible:ring-black/10',
+        'active:scale-[0.98]',
+        // hover lift
+        'hover:shadow-md hover:-translate-y-0.5',
+        className
+      ].join(' ')}
+      aria-label={label}
+      title={label}
+    >
+      {/* Glow sutil */}
+      <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 blur-md transition-opacity duration-200 group-hover:opacity-20 bg-white"></span>
+      <Icon className="text-xl" aria-hidden="true" />
+      <span>{label}</span>
+    </button>
+  );
+}
 function PerfilAlumno() {
   const { id } = useParams();
   console.log(id);
@@ -175,7 +202,7 @@ function PerfilAlumno() {
                 <h2 className="text-center titulo text-2xl font-bold text-gray-800 uppercase tracking-wide mt-6 mb-2">
                   {alumno.nomyape}
                 </h2>
-                <div className="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6">
+                {/* <div className="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6">
                   <label className="text-sm font-semibold text-gray-800 whitespace-nowrap">
                     Modo de rutina:
                   </label>
@@ -206,60 +233,59 @@ function PerfilAlumno() {
                       Músculo
                     </button>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Línea separadora */}
-                <div className="border-t border-gray-200 my-4 w-1/2 mx-auto"></div>
+                <div className="border-t border-gray-200 my-4 w-2/4 mx-auto"></div>
 
                 {/* Botones de acción según el rol */}
-                <div className="mb-6 flex flex-col sm:flex-row justify-center gap-4">
+                <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {(userLevel === 'admin' || userLevel === 'instructor') && (
-                    <button
-                      onClick={() => {
-                        setMostrarCrearRutina(true);
-                        // setMostrarProgramarRutina(false);
-                      }}
-                      className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-5 rounded-lg shadow-sm transition duration-200"
-                    >
-                      🏋️ Crear Rutina
-                    </button>
+                    <ActionButton
+                      onClick={() => setMostrarCrearRutina?.(true)}
+                      icon={FaPlusCircle}
+                      label="Crear Rutina"
+                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
+                    />
                   )}
 
-                  <button
+                  <ActionButton
                     onClick={() => {
-                      const instructorId = obtenerIdProfesor(alumno.user_id);
-                      const studentId = id;
-
-                      if (instructorId && studentId) {
+                      if (id) {
                         navigate(
-                          `/dashboard/feedbacks?instructor_id=${instructorId}&student_id=${studentId}`
+                          `/dashboard/pse?instructor_id=${userId}&student_id=${id}`
                         );
                       } else {
-                        alert('Faltan datos para ver los feedbacks');
+                        alert('Faltan datos para ver los PSE');
                       }
                     }}
-                    className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-lg shadow-sm transition duration-200"
-                  >
-                    📝 Ver Feedbacks
-                  </button>
+                    icon={FaClipboardList}
+                    label="Ver PSE"
+                    className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
+                  />
 
-                  <button
+                  <ActionButton
                     onClick={() => {
-                      const instructorId = obtenerIdProfesor(alumno.user_id);
-                      const studentId = id;
-
-                      if (instructorId && studentId) {
-                        navigate(`/dashboard/rm?student_id=${studentId}`);
+                      if (id) {
+                        navigate(`/dashboard/rm?student_id=${id}`);
                       } else {
                         alert('Faltan datos para gestionar la RM');
                       }
                     }}
-                    className="flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2.5 px-5 rounded-lg shadow-sm transition duration-200"
-                  >
-                    💪 Gestionar RM
-                  </button>
-                </div>
+                    icon={FaWeightHanging}
+                    label="Gestionar RM"
+                    className="bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700"
+                  />
 
+                  <ActionButton
+                    onClick={() =>
+                      navigate(`/dashboard/logs-global?student_id=${id}`)
+                    }
+                    icon={FaChartLine}
+                    label="Registro de Pesos"
+                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+                  />
+                </div>
                 {/* Datos personales */}
                 <div className="space-y-4 text-gray-700 text-[1.05rem]">
                   <p className="flex items-center gap-2">
@@ -336,13 +362,21 @@ function PerfilAlumno() {
             {/* Rutinas (ocupa el resto del espacio) */}
             <div className="flex-1 mt-10">
               {/* <ProtectedRoutine> */}
-              <ListaRutinas studentId={id} actualizar={recargarRutinas} />
+              {/* <ListaRutinas studentId={id} actualizar={recargarRutinas} /> */}
               {/* </ProtectedRoutine> */}
+              <RutinaPorBloques
+                studentId={id}
+                actualizar={recargarRutinas}
+              ></RutinaPorBloques>
             </div>
             {/* Rutinas con duracion (ocupa el resto del espacio) */}
             <div className="flex-1 mt-10">
               {/* <ProtectedRoutine> */}
-              <RutinasConDuracion studentId={id} />
+              {/* <RutinasConDuracion studentId={id} /> */}
+              <RutinaVigentePorBloques
+                studentId={id}
+                actualizar={recargarRutinas}
+              />
               {/* </ProtectedRoutine> */}
             </div>
           </div>
@@ -363,7 +397,7 @@ function PerfilAlumno() {
       </div>
 
       {/* Modal condicional */}
-      <Modal
+      {/* <Modal
         isOpen={mostrarCrearRutina}
         title="Crear nueva rutina"
         onCancel={() => setMostrarCrearRutina(false)}
@@ -390,7 +424,19 @@ function PerfilAlumno() {
             }}
           />
         )}
-      </Modal>
+      </Modal> */}
+
+      {mostrarCrearRutina && (
+        <ModalCrearRutina
+          studentId={id}
+          userId={userId}
+          onClose={() => setMostrarCrearRutina(false)}
+          onRutinaCreada={() => {
+            setRecargarRutinas((prev) => !prev);
+            setMostrarCrearRutina(false);
+          }}
+        />
+      )}
     </>
   );
 }
