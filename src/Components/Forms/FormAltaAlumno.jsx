@@ -4,7 +4,7 @@
  * Versión: 1.0
  *
  * Descripción:
- *  Este archivo (FormAltaAlumno.jsx) es el componente donde realizamos un formulario para
+ *  Este archivo (FormAlataAlumno.jsx) es el componente donde realizamos un formulario para
  *  la tabla users, este formulario aparece en la web del staff
  *
  *
@@ -24,11 +24,13 @@ import Alerta from '../Error';
 import ParticlesBackground from '../ParticlesBackground';
 import axios from 'axios';
 import { useAuth } from '../../AuthContext';
+
 // isOpen y onCLose son los metodos que recibe para abrir y cerrar el modal
-const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
+const FormAlataAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
   const [showModal, setShowModal] = useState(false);
   const [errorModal, setErrorModal] = useState(false);
   const { userLevel, userId } = useAuth();
+
   // const textoModal = 'Usuario creado correctamente.'; se elimina el texto
   // nuevo estado para gestionar dinámicamente según el método (PUT o POST)
   const [textoModal, setTextoModal] = useState('');
@@ -42,12 +44,15 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
     const obtenerProfesores = async () => {
       try {
         const res = await axios.get('https://vps-5097245-x.dattaweb.com/users');
-        const instructores = res.data.filter(
-          (user) => user.level === 'instructor'
-        );
-        setProfesores(instructores);
+        // Antes: solo level === 'instructor'
+        // const instructores = res.data.filter((user) => user.level === 'instructor');
+        // setProfesores(instructores);
+
+        // Ahora: SIN filtro -> todos los usuarios
+        setProfesores(res.data || []);
       } catch (error) {
-        console.log('Error al obtener profesores:', error);
+        console.log('Error al obtener usuarios:', error);
+        setProfesores([]);
       }
     };
 
@@ -82,6 +87,7 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
         valores.nomyape === '' ||
         valores.telefono === '' ||
         valores.dni === '' ||
+        // valores.objetivo === '' ||
         !valores.user_id
       ) {
         alert('Por favor, complete todos los campos obligatorios.');
@@ -284,60 +290,49 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
                         <Alerta>{errors.objetivo}</Alerta>
                       )}
                     </div>
+
                     {/* Selección Profesor */}
                     <div className="mb-5 px-4">
                       <label
                         htmlFor="user_id"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Profesor asignado
+                        Usuario asignado
                       </label>
-                      {/* Selección Profesor */}
-                      {userLevel === 'instructor' ? (
-                        <div className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-800 font-semibold shadow-sm cursor-not-allowed">
-                          {profesores.find((p) => p.id === userId)?.name ||
-                            'Instructor'}
-                          <Field
-                            type="hidden"
-                            id="user_id"
-                            name="user_id"
-                            value={userId}
-                          />
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          <Field
-                            as="select"
-                            id="user_id"
-                            name="user_id"
-                            className="appearance-none w-full px-4 py-3 bg-white border border-gray-300 text-sm text-gray-800 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          >
-                            <option value="" disabled>
-                              Selecciona un profesor
+
+                      <div className="relative">
+                        <Field
+                          as="select"
+                          id="user_id"
+                          name="user_id"
+                          className="appearance-none w-full px-4 py-3 bg-white border border-gray-300 text-sm text-gray-800 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="" disabled>
+                            Selecciona un usuario
+                          </option>
+                          {profesores.map((usuario) => (
+                            <option key={usuario.id} value={usuario.id}>
+                              {usuario.name}
                             </option>
-                            {profesores.map((profesor) => (
-                              <option key={profesor.id} value={profesor.id}>
-                                {profesor.name}
-                              </option>
-                            ))}
-                          </Field>
-                          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                            <svg
-                              className="w-5 h-5 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M19 9l-7 7-7-7"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
+                          ))}
+                        </Field>
+                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M19 9l-7 7-7-7"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
                         </div>
-                      )}
+                      </div>
+
                       {errors.user_id && touched.user_id && (
                         <p className="text-red-500 text-xs mt-1">
                           {errors.user_id}
@@ -370,8 +365,8 @@ const FormAltaAlumno = ({ isOpen, onClose, user, setSelectedUser }) => {
   );
 };
 //Se elimina los default prosp, quedo desactualizado
-// FormAltaAlumno.defaultProps = {
+// FormAlataAlumno.defaultProps = {
 //   users: {},
 // };
 
-export default FormAltaAlumno;
+export default FormAlataAlumno;

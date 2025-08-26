@@ -61,20 +61,37 @@ const AlumnosGet = () => {
     setSearch(e.target.value);
   };
 
+  // helpers para evitar toLowerCase() sobre undefined o números
+  const safe = (v) => String(v ?? '').toLowerCase();
+
   let results = alumnos.filter((dato) => {
-    const nameMatch = dato.nomyape.toLowerCase().includes(search.toLowerCase());
-    const dniMatch = dato.dni.toLowerCase().includes(search.toLowerCase());
-    const telefonoMatch = dato.telefono
-      .toLowerCase()
-      .includes(search.toLowerCase());
+    const s = safe(search);
 
-    const searchMatch = nameMatch || dniMatch || telefonoMatch;
+    const nameMatch = safe(dato.nomyape).includes(s);
+    const dniMatch = safe(dato.dni).includes(s);
+    const telMatch = safe(dato.telefono).includes(s);
+    const searchMatch = nameMatch || dniMatch || telMatch;
 
+    // si hay profesor seleccionado en el filtro, respetarlo
     const profesorMatch = selectedProfesor
-      ? dato.user_id == selectedProfesor
+      ? String(dato.user_id) === String(selectedProfesor)
       : true;
 
-    const rutinaMatch = filtroRutina ? dato.rutina_tipo === filtroRutina : true; // <-- Si no hay filtro, muestra todos
+    // regla de rutina
+    let rutinaMatch = true;
+    if (filtroRutina) {
+      rutinaMatch = dato.rutina_tipo === filtroRutina;
+
+      // ⚠️ clave: si filtro = 'personalizado' y soy instructor,
+      // SOLO mis personalizados (no los de otros)
+      if (
+        rutinaMatch &&
+        filtroRutina === 'personalizado' &&
+        userLevel === 'instructor'
+      ) {
+        rutinaMatch = String(dato.user_id) === String(userId);
+      }
+    }
 
     return searchMatch && profesorMatch && rutinaMatch;
   });
@@ -94,23 +111,20 @@ const AlumnosGet = () => {
 
   const obtenerAlumnos = async () => {
     try {
-      const response = await axios.get(URL); // traer todos los alumnos
-      let alumnosFiltrados = [];
+      let endpoint = URL;
 
       if (userLevel === 'admin') {
-        // Admin ve todos
-        alumnosFiltrados = response.data;
+        endpoint = URL; // trae todos
       } else if (userLevel === 'instructor') {
-        // Instructor ve solo sus alumnos (los que tengan user_id === userId)
-        alumnosFiltrados = response.data.filter(
-          (alumno) => alumno.user_id === userId
-        );
+        endpoint = `${URL}?mode=instructor&viewer_id=${userId}`;
       } else {
-        // Otros casos, por ejemplo el alumno mismo o ninguno
-        alumnosFiltrados = [];
+        setAlumnos([]);
+        return;
       }
 
-      setAlumnos(alumnosFiltrados);
+      const { data } = await axios.get(endpoint);
+      // Importante: reemplazar, no concatenar con los anteriores
+      setAlumnos(data);
     } catch (error) {
       console.log('Error al obtener los usuarios:', error);
     }
@@ -245,6 +259,7 @@ const AlumnosGet = () => {
               placeholder="Buscar Alumnos"
               className="input-filter text-white"
             />
+
             {/* Filtro por profesor */}
             {userLevel === 'admin' && (
               <select
@@ -348,6 +363,7 @@ const AlumnosGet = () => {
                             </span>
                           </div>
                         </td>
+
                         <td
                           className="py-2 px-4"
                           onClick={() => obtenerAlumno(alumno.id)}

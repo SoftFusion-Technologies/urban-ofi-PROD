@@ -56,6 +56,7 @@ import EjerciciosCatalogo from './Pages/Components/EjerciciosCatalogo';
 import LogsGlobalAlumno from './Pages/MetodsGet/AlumnoPerfil/LogsGlobalAlumno';
 import RutinasExplorer from './Pages/MetodsGet/RutinasExplorer';
 import PSEDashboard from './Pages/MetodsGet/PSEDashboard';
+import SocioRutina from './Pages/SocioRutina';
 
 // COMPONENTE CONTENEDOR PARA CONTROLAR LO QUE SE MUESTRA SEGÚN LA RUTA
 function AppContent() {
@@ -222,6 +223,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+        <Ruta path="/soysocio-rutina" element={<SocioRutina />} />
         {/* componentes del staff y login FINAL */}
         <Ruta path="/*" element={<NotFound />} />
       </Rutas>
