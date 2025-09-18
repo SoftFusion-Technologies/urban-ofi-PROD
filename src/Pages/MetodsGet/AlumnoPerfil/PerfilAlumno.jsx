@@ -360,7 +360,7 @@ function PerfilAlumno() {
             </div>
 
             {/* Rutinas (ocupa el resto del espacio) */}
-            <div className="flex-1 mt-10">
+            <div className="flex-1 mt-10 min-h-0 overflow-hidden">
               {/* <ProtectedRoutine> */}
               {/* <ListaRutinas studentId={id} actualizar={recargarRutinas} /> */}
               {/* </ProtectedRoutine> */}
@@ -370,7 +370,7 @@ function PerfilAlumno() {
               ></RutinaPorBloques>
             </div>
             {/* Rutinas con duracion (ocupa el resto del espacio) */}
-            <div className="flex-1 mt-10">
+            <div className="flex-1 mt-10 min-h-0 overflow-hidden">
               {/* <ProtectedRoutine> */}
               {/* <RutinasConDuracion studentId={id} /> */}
               <RutinaVigentePorBloques
