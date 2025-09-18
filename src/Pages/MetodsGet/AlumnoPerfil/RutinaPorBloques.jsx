@@ -1636,33 +1636,29 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
           {open && (
             <motion.div
               key="content"
-              className="bg-white/95 pt-1 px-0 flex flex-col min-h-0"
-              style={{ maxHeight: 'min(65svh, 65vh)' }} // límite sano de alto
+              className="bg-white/95 px-3 pt-1"
               variants={accordionVariants}
               initial="collapsed"
               animate="open"
               exit="collapsed"
             >
-              {/* Scroller REAL va acá (no en el <ul>) */}
-              <div
-                className="px-3 flex-1 min-h-0 overflow-y-auto overscroll-contain [overscroll-behavior:contain] [scrollbar-gutter:stable]"
-                // para iOS
-                style={{ WebkitOverflowScrolling: 'touch' }}
+              {/* Scroller interno para muchos ejercicios */}
+              <motion.ul
+                className="space-y-3 pr-1 max-h-[60svh] md:max-h-[65vh] overflow-y-auto overscroll-contain"
+                variants={accordListVariants}
+                initial="hidden"
+                animate="show"
+                exit="exit"
               >
-                <motion.ul
-                  className="space-y-3 pr-1 pb-6" // pb-6 = aire al final
-                  variants={accordListVariants}
-                  initial="hidden"
-                  animate="show"
-                  exit="exit"
-                >
-                  {(ejerciciosWithRefs || []).map((ej) => (
-                    <motion.li key={ej.id} variants={accordItemVariants} layout>
-                      <EjercicioCompacto ej={ej} />
-                    </motion.li>
-                  ))}
-                </motion.ul>
-              </div>
+                {(ejerciciosWithRefs || []).map((ej) => (
+                  <motion.li key={ej.id} variants={accordItemVariants} layout>
+                    <EjercicioCompacto ej={ej} />
+                  </motion.li>
+                ))}
+              </motion.ul>
+
+              {/* padding bottom suave */}
+              <div className="pb-3" />
             </motion.div>
           )}
         </AnimatePresence>
