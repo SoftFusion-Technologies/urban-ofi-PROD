@@ -24,6 +24,7 @@ import {
 
 import { AuthProvider } from './AuthContext';
 import ProtectedRoute from './ProtectedRoute';
+import ProtectedRoutePilates from './ProtectedRoutePilates.jsx';
 import useLayoutVisibility from './Hooks/useLayoutVisibility';
 
 import Home from './Components/Home/Home';
@@ -37,6 +38,7 @@ import QuienesSomos from './Pages/QuienesSomos';
 
 // LOGIN
 import LoginForm from './Components/login/LoginForm';
+import LoginProfesorPilates from './Components/login/LoginProfesorPilates';
 import AdminPage from './Pages/staff/AdminPage';
 import UsersGet from './Pages/MetodsGet/UserGet';
 import InstructoresGet from './Pages/MetodsGet/InstructoresGet';
@@ -51,12 +53,15 @@ import RoutinesGet from './Pages/MetodsGet/RoutinesGet';
 import ColoresRutinaCrud from './Pages/MetodsGet/ColoresRutinaCrud';
 import EjerciciosProfesorCrud from './Pages/MetodsGet/EjerciciosProfesorCrud';
 import { useAuth } from './AuthContext';
+import { AuthInstructorProvider } from './AuthContextInstructores';
 import BloquesEjercicio from './Pages/MetodsGet/BloquesEjercicio';
 import EjerciciosCatalogo from './Pages/Components/EjerciciosCatalogo';
 import LogsGlobalAlumno from './Pages/MetodsGet/AlumnoPerfil/LogsGlobalAlumno';
 import RutinasExplorer from './Pages/MetodsGet/RutinasExplorer';
 import PSEDashboard from './Pages/MetodsGet/PSEDashboard';
 import SocioRutina from './Pages/SocioRutina';
+import PilatesGestion from './Pages/MetodsGet/Pilates/PilatesGestion';
+import PilatesInstructores from './Pages/MetodsGet/Pilates/PilatesInstructor.jsx';
 
 // COMPONENTE CONTENEDOR PARA CONTROLAR LO QUE SE MUESTRA SEGÚN LA RUTA
 function AppContent() {
@@ -72,6 +77,7 @@ function AppContent() {
         <Ruta path="/quienes-somos" element={<QuienesSomos />} />
         {/* componentes del staff y login INICIO */}
         <Ruta path="/login" element={<LoginForm />} />
+        <Ruta path="/pilates" element={<LoginProfesorPilates />} />
         <Ruta path="/soyalumno" element={<LoginForm />} />
         <Ruta
           path="/dashboard"
@@ -223,7 +229,23 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+        <Ruta
+          path="/dashboard/pilates-gestion"
+          element={
+            <ProtectedRoute>
+              <PilatesGestion />
+            </ProtectedRoute>
+          }
+        />
         <Ruta path="/soysocio-rutina" element={<SocioRutina />} />
+        <Ruta
+          path="/pilates/instructor"
+          element={
+            <ProtectedRoutePilates>
+              <PilatesInstructores />
+            </ProtectedRoutePilates>
+          }
+        />{' '}
         {/* componentes del staff y login FINAL */}
         <Ruta path="/*" element={<NotFound />} />
       </Rutas>
@@ -235,9 +257,11 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <AuthInstructorProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthInstructorProvider>
     </AuthProvider>
   );
 }

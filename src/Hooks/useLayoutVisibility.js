@@ -6,11 +6,14 @@ const useLayoutVisibility = () => {
 
   const path = location.pathname;
 
-  const hideLayoutFooter = path === '/login';
+  // Hide footer and nav for login-like routes. Add '/pilates' so the Pilates
+  // instructor login page doesn't show the site's NavBar/footer.
+  const hideLayoutFooter = path === '/login' || path.startsWith('/pilates');
 
   const hideLayoutNav =
     path === '/login' ||
     path === '/soyalumno' ||
+    path.startsWith('/pilates') ||
     path.startsWith('/dashboard') ||
     path.startsWith('/miperfil');
 

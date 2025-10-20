@@ -21,11 +21,13 @@ import FormAltaUser from '../../Components/Forms/FormAltaUser';
 import UserDetails from './GetIds/UserGetId';
 import { useAuth } from '../../AuthContext';
 import ParticlesBackground from '../../Components/ParticlesBackground';
+import UserGetPilates from './UserGetPilates';
 
 // Componente funcional que maneja la lógica relacionada con los Users
 const UserGet = () => {
   // useState que controla el modal de nuevo usuario
   const [modalNewUser, setModalNewUser] = useState(false);
+  const [sectionUserShow, setSectionUserShow] = useState("Usuarios"); // Estado para controlar la sección visible
   const [selectedUser, setSelectedUser] = useState(null); // Estado para el usuario seleccionado
   const [modalUserDetails, setModalUserDetails] = useState(false); // Estado para controlar el modal de detalles del usuario
   const [filterSede, setFilterSede] = useState(''); // Estado para el filtro de sede
@@ -192,6 +194,32 @@ const UserGet = () => {
   return (
     <>
       <NavbarStaff />
+      <div className="flex justify-center gap-4 my-6">
+        <button
+          className={`px-6 py-2 rounded-full ${
+            sectionUserShow === "Usuarios"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-black"
+          } font-semibold shadow-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400`}
+          onClick={() => setSectionUserShow("Usuarios")}
+        >
+          Usuarios
+        </button>
+        <button
+          className={`px-6 py-2 rounded-full ${
+            sectionUserShow === "Pilates"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-black"
+          }  font-semibold shadow-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400`}
+          onClick={() => setSectionUserShow("Pilates")}
+        >
+          Pilates
+        </button>
+      </div>
+      {sectionUserShow === "Pilates" ? (
+        <UserGetPilates />
+      ) : (
+
       <div className="bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 h-contain pt-10 pb-10">
         <ParticlesBackground></ParticlesBackground>
         <div className="rounded-lg w-11/12 mx-auto pb-2">
@@ -246,7 +274,7 @@ const UserGet = () => {
 
           {Object.keys(results).length === 0 ? (
             <p className="text-center pb-10">
-              El Usuario NO Existe ||{' '}
+              El Usuario NO Existe ||{" "}
               <span className="text-span"> Usuario: {results.length}</span>
             </p>
           ) : (
@@ -302,7 +330,7 @@ const UserGet = () => {
                           >
                             {user.sede}
                           </td>
-                          {userLevel === 'admin' ? (
+                          {userLevel === "admin" ? (
                             <td className="py-2 px-4">
                               <div className="flex justify-center gap-2">
                                 <button
@@ -340,7 +368,7 @@ const UserGet = () => {
                   {numbers.map((number, index) => (
                     <li
                       className={`page-item ${
-                        currentPage === number ? 'active' : ''
+                        currentPage === number ? "active" : ""
                       }`}
                       key={index}
                     >
@@ -370,6 +398,7 @@ const UserGet = () => {
           />
         </div>
       </div>
+      )}
       {selectedUser && (
         <UserDetails
           user={selectedUser}

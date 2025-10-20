@@ -126,6 +126,16 @@ const AdminPage = () => {
                 </Link>
               </div>
             )}
+
+            {(userLevel === 'admin' ||
+              userLevel === 'administrador' ||
+              userLevel === 'gerente') && (
+              <div className="bg-white font-bignoodle w-[250px] h-[100px] text-[20px] lg:w-[400px] lg:h-[150px] lg:text-[30px] mx-auto flex justify-center items-center rounded-tr-xl rounded-bl-xl">
+                <Link to="/dashboard/pilates-gestion">
+                  <button className="btnstaff">Pilates</button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
