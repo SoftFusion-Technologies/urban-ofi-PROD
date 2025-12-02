@@ -20,6 +20,7 @@ import HeaderRutinas from '../../Components/HeaderRutinas';
 // COPIA del original, solo cambia el fetch y se agrega la UI de vigencia
 // ─────────────────────────────────────────────────────────────
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom'; //AÑADIR ESTO
 
 import PSEModal from '../../../Components/PSEModal';
 import {
@@ -58,11 +59,14 @@ function EditarEjercicioModal({ open, onClose, ejercicio, onSaved }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`https://vps-5097245-x.dattaweb.com/ejercicios/${ejercicio.id}`, {
-        nombre: form.nombre,
-        notas: form.notas,
-        orden: form.orden === '' ? null : Number(form.orden)
-      });
+      await axios.put(
+        `https://vps-5097245-x.dattaweb.com/ejercicios/${ejercicio.id}`,
+        {
+          nombre: form.nombre,
+          notas: form.notas,
+          orden: form.orden === '' ? null : Number(form.orden)
+        }
+      );
       onClose();
       await onSaved?.();
     } catch (err) {
@@ -261,12 +265,15 @@ function AgregarEjercicioModal({ open, onClose, bloque, onSaved }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const resEj = await axios.post('https://vps-5097245-x.dattaweb.com/ejercicios', {
-        bloque_id: bloque.id,
-        nombre: form.nombre.trim(),
-        notas: form.notas || null,
-        orden: Number(form.orden) || 1
-      });
+      const resEj = await axios.post(
+        'https://vps-5097245-x.dattaweb.com/ejercicios',
+        {
+          bloque_id: bloque.id,
+          nombre: form.nombre.trim(),
+          notas: form.notas || null,
+          orden: Number(form.orden) || 1
+        }
+      );
       const ejercicioId = resEj.data?.ejercicio?.id ?? resEj.data?.id;
       if (!ejercicioId) throw new Error('No se obtuvo id del ejercicio');
 
@@ -279,7 +286,9 @@ function AgregarEjercicioModal({ open, onClose, bloque, onSaved }) {
         descanso: s.descanso || null
       }));
       await Promise.all(
-        payloads.map((p) => axios.post('https://vps-5097245-x.dattaweb.com/series', p))
+        payloads.map((p) =>
+          axios.post('https://vps-5097245-x.dattaweb.com/series', p)
+        )
       );
 
       onClose();
@@ -648,7 +657,9 @@ const RutinaVigentePorBloques = ({ studentId, actualizar }) => {
     if (!window.confirm(`¿Eliminar el ejercicio "${ej.nombre}" y sus series?`))
       return;
     try {
-      await axios.delete(`https://vps-5097245-x.dattaweb.com/ejercicios/${ej.id}`);
+      await axios.delete(
+        `https://vps-5097245-x.dattaweb.com/ejercicios/${ej.id}`
+      );
       await cargarRutinas();
     } catch (e) {
       console.error(e);
@@ -665,7 +676,9 @@ const RutinaVigentePorBloques = ({ studentId, actualizar }) => {
     if (!hasPerms) return;
     if (!window.confirm(`¿Eliminar Serie ${serie.numero_serie}?`)) return;
     try {
-      await axios.delete(`https://vps-5097245-x.dattaweb.com/series/${serie.id}`);
+      await axios.delete(
+        `https://vps-5097245-x.dattaweb.com/series/${serie.id}`
+      );
       await cargarRutinas();
     } catch (e) {
       console.error(e);
@@ -814,450 +827,456 @@ const RutinaVigentePorBloques = ({ studentId, actualizar }) => {
     );
   }
 
-    // ========== Subcomponentes (definidos dentro para reutilizar helpers/handlers) ==========
-  
-    // Bottom Sheet con detalle de ejercicio
-    const ExerciseDetailSheet = ({ open, onClose, ej }) => {
-      // Opcional: bloquear el scroll del body mientras está abierto (mejora UX)
-      useEffect(() => {
-        if (!open) return;
-        const prev = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => {
-          document.body.style.overflow = prev;
-        };
-      }, [open]);
-  
-      if (!open) return null;
-  
-      return (
-        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-  
-          {/* Panel: ahora en flex-col con altura máxima controlada */}
-          <motion.div
-            className="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl flex flex-col"
-            style={{ maxHeight: 'min(85svh, 85vh)' }}
-            initial={{ y: '100%', opacity: 1 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '100%', opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 34 }}
-          >
-            {/* Header */}
-            <div className="px-5 pt-3 pb-2 shrink-0">
-              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-gray-300" />
-              <div className="flex items-start gap-3">
-                <h3 className="flex-1 titulo text-xl font-bold text-gray-900">
-                  {ej?.nombre}
-                </h3>
-                <button
-                  onClick={onClose}
-                  className="text-gray-500 hover:text-gray-700 rounded-full h-9 w-9 grid place-content-center hover:bg-gray-100 active:scale-[.98]"
-                  aria-label="Cerrar"
+  // ========== Subcomponentes (definidos dentro para reutilizar helpers/handlers) ==========
+
+  // Bottom Sheet con detalle de ejercicio
+  const ExerciseDetailSheet = ({ open, onClose, ej }) => {
+    // Bloquear scroll del body mientras está abierto
+    useEffect(() => {
+      if (!open) return;
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }, [open]);
+
+    if (!open) return null;
+
+    const content = (
+      <div
+        className="fixed inset-0 z-[120]" // ⬅️ z ALTO para estar encima de todo el layout
+        role="dialog"
+        aria-modal="true"
+      >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+
+        {/* Panel: bottom sheet */}
+        <motion.div
+          className="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl flex flex-col"
+          style={{ maxHeight: 'min(85svh, 85vh)' }}
+          initial={{ y: '100%', opacity: 1 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: '100%', opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+        >
+          {/* Header */}
+          <div className="px-5 pt-3 pb-2 shrink-0">
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-gray-300" />
+            <div className="flex items-start gap-3">
+              <h3 className="flex-1 titulo text-xl font-bold text-gray-900">
+                {ej?.nombre}
+              </h3>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 rounded-full h-9 w-9 grid place-content-center hover:bg-gray-100 active:scale-[.98]"
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Atajos arriba (video / notas breves) */}
+            <div className="mt-2 space-y-3">
+              {isAlumno && (
+                <a
+                  href={buildYouTubeUrl(ej)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-center text-sm font-semibold underline text-red-600"
                 >
-                  ✕
+                  Ver video
+                </a>
+              )}
+              {!!ej?.notas && (
+                <p className="text-sm text-gray-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  {ej.notas}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* CONTENIDO SCROLLEABLE */}
+          <div
+            className="px-5 pb-6 pr-4 flex-1 min-h-0 overflow-y-auto overscroll-contain"
+            style={{
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)'
+            }}
+          >
+            <h4 className="mt-2 mb-2 font-semibold text-gray-800">Series</h4>
+
+            <motion.ul
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+              variants={listVariants}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+            >
+              {(ej?.series || []).map((serie) => {
+                const ult = ultPSEMap?.[serie.id];
+                return (
+                  <motion.li
+                    key={serie.id}
+                    className="rounded-xl border border-blue-300 bg-gray-50 p-3 shadow-sm"
+                    variants={itemVariants}
+                    layout
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm text-gray-800">
+                        <strong>Serie {serie.numero_serie}</strong>
+                      </p>
+                      {ult ? (
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                          PSE {ult.rpe_real} (RIR {ult.rir})
+                        </span>
+                      ) : (
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                          Sin registro
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-1 grid grid-cols-2 gap-2 text-[12px] text-gray-700">
+                      <div>
+                        Reps: <strong>{serie.repeticiones}</strong>
+                      </div>
+                      <div>
+                        Peso: <strong>{serie.kg} kg</strong>
+                      </div>
+                      <div>
+                        Tiempo: <strong>{serie.tiempo}</strong>
+                      </div>
+                      <div>
+                        Descanso: <strong>{serie.descanso}</strong>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold active:scale-[.98]"
+                        onClick={() => openLogModal(ej, serie)}
+                      >
+                        Registrar PESO
+                      </button>
+                      {isAlumno && (
+                        <button
+                          className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold active:scale-[.98]"
+                          onClick={() =>
+                            openPSESerie(
+                              ej,
+                              serie,
+                              ej.__bloqueRef,
+                              ej.__rutinaId
+                            )
+                          }
+                        >
+                          Registrar PSE/SER
+                        </button>
+                      )}
+                    </div>
+
+                    {hasPerms && (
+                      <div className="mt-2 flex items-center gap-3 text-[13px]">
+                        <button
+                          onClick={() => onEditarSerie(serie)}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => onEliminarSerie(serie)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
+                  </motion.li>
+                );
+              })}
+            </motion.ul>
+
+            <div
+              style={{ height: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}
+            />
+          </div>
+
+          {/* Footer */}
+          <div className="px-5 py-3 border-t border-gray-100 text-center text-xs text-gray-500">
+            Desarrollado por{' '}
+            <a
+              href="https://softfusion.com.ar/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-pink-600 hover:underline"
+            >
+              SoftFusion
+            </a>
+          </div>
+        </motion.div>
+      </div>
+    );
+
+    // ⬅️ Esto lo saca del stacking context del card y lo lleva directo al <body>
+    return createPortal(content, document.body);
+  };
+
+  const ActionSheet = ({ open, onClose, title, actions = [] }) => {
+    useEffect(() => {
+      if (!open) return;
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }, [open]);
+
+    if (!open) return null;
+
+    const content = (
+      <div className="fixed inset-0 z-[115]">
+        {/* backdrop */}
+        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+
+        {/* sheet */}
+        <div className="absolute inset-x-0 bottom-0 max-h-[60vh] rounded-t-3xl bg-white shadow-2xl">
+          <div className="pt-2 pb-1 flex justify-center">
+            <div className="h-1.5 w-12 rounded-full bg-gray-300" />
+          </div>
+          <div className="px-5 pb-4">
+            {title && (
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">
+                {title}
+              </h3>
+            )}
+            <div className="divide-y overflow-y-auto overscroll-contain max-h-[48vh]">
+              {actions.map((a, i) => (
+                <button
+                  key={i}
+                  className={`w-full flex items-center gap-3 py-3 ${
+                    a.danger
+                      ? 'text-red-600'
+                      : a.primary
+                      ? 'text-blue-700'
+                      : 'text-gray-800'
+                  } hover:bg-gray-50`}
+                  onClick={() => {
+                    a.onClick?.();
+                    onClose();
+                  }}
+                >
+                  {a.icon && (
+                    <span className="w-6 h-6 grid place-content-center">
+                      {a.icon}
+                    </span>
+                  )}
+                  <span className="text-[15px] font-medium">{a.label}</span>
                 </button>
+              ))}
+            </div>
+            <button
+              className="mt-3 w-full h-11 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold"
+              onClick={onClose}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+
+    return createPortal(content, document.body);
+  };
+
+  // Tarjeta compacta de ejercicio (con “Ver mejor”)
+  // ======== Card de ejercicio responsive & pro ========
+
+  // Lista: controla el "stagger" (cascada)
+  const listVariants = {
+    hidden: {},
+    show: {
+      transition: {
+        delayChildren: 0.2,
+        staggerChildren: 0.15, // 1→2→3→4
+        staggerDirection: 1
+      }
+    },
+    exit: {
+      transition: {
+        staggerChildren: 0.06,
+        staggerDirection: -1 // 4→3→2→1
+      }
+    }
+  };
+
+  // Ítem: entrada y salida suaves
+  const itemVariants = {
+    hidden: { opacity: 0, y: 12 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { type: 'spring', stiffness: 360, damping: 28 }
+    },
+    exit: { opacity: 0, y: 12, transition: { duration: 0.18 } }
+  };
+
+  const EjercicioCompacto = ({ ej }) => {
+    const [openDetail, setOpenDetail] = useState(false);
+    const [actionsOpen, setActionsOpen] = useState(false); // mobile: sheet de acciones
+
+    const totalSeries = (ej.series || []).length;
+    const first = (ej.series || [])[0];
+    const ultPrimera = first ? ultPSEMap?.[first.id] : null;
+
+    return (
+      <>
+        <li className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-shadow active:scale-[.995]">
+          <div className="flex items-start gap-3">
+            {/* Monograma (usar sm, no xs) */}
+            <div className="mt-0.5 hidden sm:flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 border border-blue-100">
+              <span className="text-xs font-extrabold text-blue-700 uppercase">
+                {(ej.nombre || 'E')[0]}
+              </span>
+            </div>
+
+            {/* Contenido */}
+            <div className="min-w-0 flex-1">
+              {/* Header: título + acciones (grid responsivo) */}
+              <div className="grid grid-cols-[1fr_auto] items-start gap-2">
+                {/* Título truncable */}
+                <h5 className="min-w-0 truncate text-[15px] font-bold text-gray-900 uppercase tracking-tight">
+                  {ej.nombre}
+                </h5>
+
+                {/* Acciones admin */}
+                <div className="justify-self-end flex items-center gap-1">
+                  {/* Desktop: icon buttons */}
+                  {hasPerms && (
+                    <div className="hidden sm:flex items-center gap-1">
+                      <button
+                        onClick={() => onEditarEjercicio(ej)}
+                        className="h-9 w-9 grid place-content-center rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"
+                        title="Editar ejercicio"
+                        aria-label="Editar ejercicio"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => onEliminarEjercicio(ej)}
+                        className="h-9 w-9 grid place-content-center rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 transition"
+                        title="Eliminar ejercicio"
+                        aria-label="Eliminar ejercicio"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Mobile: kebab abre ActionSheet fijo al viewport */}
+                  {hasPerms && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActionsOpen(true);
+                      }}
+                      className="sm:hidden h-9 w-9 grid place-content-center rounded-lg hover:bg-gray-100"
+                      aria-label="Más acciones"
+                    >
+                      <FaEllipsisV />
+                    </button>
+                  )}
+                </div>
               </div>
-  
-              {/* Atajos arriba (video / notas breves) */}
-              <div className="mt-2 space-y-3">
+
+              {/* Notas (compactas) */}
+              {!!ej.notas && (
+                <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">
+                  {ej.notas}
+                </p>
+              )}
+
+              {/* Chips */}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                  {totalSeries} series
+                </span>
+                {first && (
+                  <>
+                    <span className="text-[11px] px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {first.repeticiones} reps (S1)
+                    </span>
+                    <span className="text-[11px] px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                      {first.kg} kg (S1)
+                    </span>
+                  </>
+                )}
+                {ultPrimera && (
+                  <span className="text-[11px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                    PSE {ultPrimera.rpe_real}
+                  </span>
+                )}
+              </div>
+
+              {/* CTAs: full-width en mobile, inline en sm+ */}
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:flex sm:items-center sm:gap-2">
+                <button
+                  className="h-10 sm:h-auto sm:text-xs px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg bg-gray-900 text-white font-semibold active:scale-[.98]"
+                  onClick={() => setOpenDetail(true)}
+                >
+                  Ver mejor
+                </button>
+
                 {isAlumno && (
                   <a
                     href={buildYouTubeUrl(ej)}
                     target="_blank"
                     rel="noreferrer"
-                    className="block text-center text-sm font-semibold underline text-red-600"
+                    className="inline-flex items-center justify-center gap-2 h-10 sm:h-auto sm:text-xs px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg bg-red-600 text-white font-semibold active:scale-[.98]"
                   >
+                    <FaYoutube className="text-white" />
                     Ver video
                   </a>
                 )}
-                {!!ej?.notas && (
-                  <p className="text-sm text-gray-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                    {ej.notas}
-                  </p>
-                )}
               </div>
-            </div>
-  
-            {/* CONTENIDO SCROLLEABLE: flex-1 + min-h-0 + overflow-y-auto */}
-            <div
-              className="px-5 pb-6 pr-4 flex-1 min-h-0 overflow-y-auto overscroll-contain"
-              style={{
-                // dejar aire para la curvatura inferior y barras del SO
-                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)'
-              }}
-            >
-              <h4 className="mt-2 mb-2 font-semibold text-gray-800">Series</h4>
-  
-              <motion.ul
-                className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-                variants={listVariants}
-                initial="hidden"
-                animate="show"
-                exit="exit"
-              >
-                {(ej?.series || []).map((serie) => {
-                  const ult = ultPSEMap?.[serie.id];
-                  return (
-                    <motion.li
-                      key={serie.id}
-                      className="rounded-xl border border-blue-300 bg-gray-50 p-3 shadow-sm"
-                      variants={itemVariants}
-                      layout
-                    >
-                      {/* …tu contenido de la serie tal cual… */}
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm text-gray-800">
-                          <strong>Serie {serie.numero_serie}</strong>
-                        </p>
-                        {ult ? (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
-                            PSE {ult.rpe_real} (RIR {ult.rir})
-                          </span>
-                        ) : (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
-                            Sin registro
-                          </span>
-                        )}
-                      </div>
-  
-                      <div className="mt-1 grid grid-cols-2 gap-2 text-[12px] text-gray-700">
-                        <div>
-                          Reps: <strong>{serie.repeticiones}</strong>
-                        </div>
-                        <div>
-                          Peso: <strong>{serie.kg} kg</strong>
-                        </div>
-                        <div>
-                          Tiempo: <strong>{serie.tiempo}</strong>
-                        </div>
-                        <div>
-                          Descanso: <strong>{serie.descanso}</strong>
-                        </div>
-                      </div>
-  
-                      <div className="mt-3 flex items-center gap-2">
-                        <button
-                          className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold active:scale-[.98]"
-                          onClick={() => openLogModal(ej, serie)}
-                        >
-                          Registrar PESO
-                        </button>
-                        {isAlumno && (
-                          <button
-                            className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold active:scale-[.98]"
-                            onClick={() =>
-                              openPSESerie(
-                                ej,
-                                serie,
-                                ej.__bloqueRef,
-                                ej.__rutinaId
-                              )
-                            }
-                          >
-                            Registrar PSE/SER
-                          </button>
-                        )}
-                      </div>
-  
-                      {hasPerms && (
-                        <div className="mt-2 flex items-center gap-3 text-[13px]">
-                          <button
-                            onClick={() => onEditarSerie(serie)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => onEliminarSerie(serie)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      )}
-                    </motion.li>
-                  );
-                })}
-              </motion.ul>
-  
-              {/* Espaciador extra por seguridad (que el último item nunca quede tapado) */}
-              <div
-                style={{ height: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}
-              />
-            </div>
-  
-            {/* Footer */}
-            <div className="px-5 py-3 border-t border-gray-100 text-center text-xs text-gray-500">
-              Desarrollado por{' '}
-              <a
-                href="https://softfusion.com.ar/"
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-pink-600 hover:underline"
-              >
-                SoftFusion
-              </a>
-            </div>
-          </motion.div>
-        </div>
-      );
-    };
-  
-    const ActionSheet = ({ open, onClose, title, actions = [] }) => {
-      // lock scroll del fondo mientras está abierto
-      useEffect(() => {
-        if (!open) return;
-        const prev = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => {
-          document.body.style.overflow = prev;
-        };
-      }, [open]);
-  
-      if (!open) return null;
-      return (
-        <div className="fixed inset-0 z-50">
-          {/* backdrop */}
-          <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-          {/* sheet */}
-          <div className="absolute inset-x-0 bottom-0 max-h-[60vh] rounded-t-3xl bg-white shadow-2xl">
-            <div className="pt-2 pb-1 flex justify-center">
-              <div className="h-1.5 w-12 rounded-full bg-gray-300" />
-            </div>
-            <div className="px-5 pb-4">
-              {title && (
-                <h3 className="text-sm font-semibold text-gray-600 mb-2">
-                  {title}
-                </h3>
-              )}
-              <div className="divide-y overflow-y-auto overscroll-contain max-h-[48vh]">
-                {actions.map((a, i) => (
-                  <button
-                    key={i}
-                    className={`w-full flex items-center gap-3 py-3 ${
-                      a.danger
-                        ? 'text-red-600'
-                        : a.primary
-                        ? 'text-blue-700'
-                        : 'text-gray-800'
-                    } hover:bg-gray-50`}
-                    onClick={() => {
-                      a.onClick?.();
-                      onClose();
-                    }}
-                  >
-                    {a.icon && (
-                      <span className="w-6 h-6 grid place-content-center">
-                        {a.icon}
-                      </span>
-                    )}
-                    <span className="text-[15px] font-medium">{a.label}</span>
-                  </button>
-                ))}
-              </div>
-              <button
-                className="mt-3 w-full h-11 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold"
-                onClick={onClose}
-              >
-                Cancelar
-              </button>
             </div>
           </div>
-        </div>
-      );
-    };
-  
-    // Tarjeta compacta de ejercicio (con “Ver mejor”)
-    // ======== Card de ejercicio responsive & pro ========
-  
-    // Lista: controla el "stagger" (cascada)
-    const listVariants = {
-      hidden: {},
-      show: {
-        transition: {
-          delayChildren: 0.2,
-          staggerChildren: 0.15, // 1→2→3→4
-          staggerDirection: 1
-        }
-      },
-      exit: {
-        transition: {
-          staggerChildren: 0.06,
-          staggerDirection: -1 // 4→3→2→1
-        }
-      }
-    };
-  
-    // Ítem: entrada y salida suaves
-    const itemVariants = {
-      hidden: { opacity: 0, y: 12 },
-      show: {
-        opacity: 1,
-        y: 0,
-        transition: { type: 'spring', stiffness: 360, damping: 28 }
-      },
-      exit: { opacity: 0, y: 12, transition: { duration: 0.18 } }
-    };
-  
-    const EjercicioCompacto = ({ ej }) => {
-      const [openDetail, setOpenDetail] = useState(false);
-      const [actionsOpen, setActionsOpen] = useState(false); // mobile: sheet de acciones
-  
-      const totalSeries = (ej.series || []).length;
-      const first = (ej.series || [])[0];
-      const ultPrimera = first ? ultPSEMap?.[first.id] : null;
-  
-      return (
-        <>
-          <li className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-shadow active:scale-[.995]">
-            <div className="flex items-start gap-3">
-              {/* Monograma (usar sm, no xs) */}
-              <div className="mt-0.5 hidden sm:flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 border border-blue-100">
-                <span className="text-xs font-extrabold text-blue-700 uppercase">
-                  {(ej.nombre || 'E')[0]}
-                </span>
-              </div>
-  
-              {/* Contenido */}
-              <div className="min-w-0 flex-1">
-                {/* Header: título + acciones (grid responsivo) */}
-                <div className="grid grid-cols-[1fr_auto] items-start gap-2">
-                  {/* Título truncable */}
-                  <h5 className="min-w-0 truncate text-[15px] font-bold text-gray-900 uppercase tracking-tight">
-                    {ej.nombre}
-                  </h5>
-  
-                  {/* Acciones admin */}
-                  <div className="justify-self-end flex items-center gap-1">
-                    {/* Desktop: icon buttons */}
-                    {hasPerms && (
-                      <div className="hidden sm:flex items-center gap-1">
-                        <button
-                          onClick={() => onEditarEjercicio(ej)}
-                          className="h-9 w-9 grid place-content-center rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition"
-                          title="Editar ejercicio"
-                          aria-label="Editar ejercicio"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => onEliminarEjercicio(ej)}
-                          className="h-9 w-9 grid place-content-center rounded-lg text-red-600 hover:text-red-800 hover:bg-red-50 transition"
-                          title="Eliminar ejercicio"
-                          aria-label="Eliminar ejercicio"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    )}
-  
-                    {/* Mobile: kebab abre ActionSheet fijo al viewport */}
-                    {hasPerms && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActionsOpen(true);
-                        }}
-                        className="sm:hidden h-9 w-9 grid place-content-center rounded-lg hover:bg-gray-100"
-                        aria-label="Más acciones"
-                      >
-                        <FaEllipsisV />
-                      </button>
-                    )}
-                  </div>
-                </div>
-  
-                {/* Notas (compactas) */}
-                {!!ej.notas && (
-                  <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">
-                    {ej.notas}
-                  </p>
-                )}
-  
-                {/* Chips */}
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                    {totalSeries} series
-                  </span>
-                  {first && (
-                    <>
-                      <span className="text-[11px] px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {first.repeticiones} reps (S1)
-                      </span>
-                      <span className="text-[11px] px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                        {first.kg} kg (S1)
-                      </span>
-                    </>
-                  )}
-                  {ultPrimera && (
-                    <span className="text-[11px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
-                      PSE {ultPrimera.rpe_real}
-                    </span>
-                  )}
-                </div>
-  
-                {/* CTAs: full-width en mobile, inline en sm+ */}
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:flex sm:items-center sm:gap-2">
-                  <button
-                    className="h-10 sm:h-auto sm:text-xs px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg bg-gray-900 text-white font-semibold active:scale-[.98]"
-                    onClick={() => setOpenDetail(true)}
-                  >
-                    Ver mejor
-                  </button>
-  
-                  {isAlumno && (
-                    <a
-                      href={buildYouTubeUrl(ej)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center gap-2 h-10 sm:h-auto sm:text-xs px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg bg-red-600 text-white font-semibold active:scale-[.98]"
-                    >
-                      <FaYoutube className="text-white" />
-                      Ver video
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </li>
-  
-          {/* ActionSheet (mobile) */}
-          <ActionSheet
-            open={actionsOpen}
-            onClose={() => setActionsOpen(false)}
-            title="Acciones del ejercicio"
-            actions={[
-              {
-                label: 'Editar ejercicio',
-                icon: <FaEdit />,
-                primary: true,
-                onClick: () => onEditarEjercicio(ej)
-              },
-              {
-                label: 'Eliminar ejercicio',
-                icon: <FaTrash />,
-                danger: true,
-                onClick: () => onEliminarEjercicio(ej)
-              }
-            ]}
-          />
-  
-          {/* Sheet de detalle */}
-          <AnimatePresence>
-            {openDetail && (
-              <ExerciseDetailSheet
-                open={openDetail}
-                onClose={() => setOpenDetail(false)}
-                ej={ej}
-              />
-            )}
-          </AnimatePresence>
-        </>
-      );
-    };
-  
+        </li>
+
+        {/* ActionSheet (mobile) */}
+        <ActionSheet
+          open={actionsOpen}
+          onClose={() => setActionsOpen(false)}
+          title="Acciones del ejercicio"
+          actions={[
+            {
+              label: 'Editar ejercicio',
+              icon: <FaEdit />,
+              primary: true,
+              onClick: () => onEditarEjercicio(ej)
+            },
+            {
+              label: 'Eliminar ejercicio',
+              icon: <FaTrash />,
+              danger: true,
+              onClick: () => onEliminarEjercicio(ej)
+            }
+          ]}
+        />
+
+        {/* Sheet de detalle */}
+        <AnimatePresence>
+          {openDetail && (
+            <ExerciseDetailSheet
+              open={openDetail}
+              onClose={() => setOpenDetail(false)}
+              ej={ej}
+            />
+          )}
+        </AnimatePresence>
+      </>
+    );
+  };
 
   // Acordeón de Bloque
   // ======== Acordeón de bloque con progreso ========

@@ -21,6 +21,7 @@ import {
   createPSESesion,
   createPSEGeneric
 } from '../../../api/pseApi';
+import { createPortal } from 'react-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -53,11 +54,14 @@ function EditarEjercicioModal({ open, onClose, ejercicio, onSaved }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`https://vps-5097245-x.dattaweb.com/ejercicios/${ejercicio.id}`, {
-        nombre: form.nombre,
-        notas: form.notas,
-        orden: form.orden === '' ? null : Number(form.orden)
-      });
+      await axios.put(
+        `https://vps-5097245-x.dattaweb.com/ejercicios/${ejercicio.id}`,
+        {
+          nombre: form.nombre,
+          notas: form.notas,
+          orden: form.orden === '' ? null : Number(form.orden)
+        }
+      );
       onClose();
       await onSaved?.();
     } catch (err) {
@@ -261,12 +265,15 @@ function AgregarEjercicioModal({ open, onClose, bloque, onSaved }) {
     e.preventDefault();
     try {
       // 1) Crear ejercicio
-      const resEj = await axios.post('https://vps-5097245-x.dattaweb.com/ejercicios', {
-        bloque_id: bloque.id,
-        nombre: form.nombre.trim(),
-        notas: form.notas || null,
-        orden: Number(form.orden) || 1
-      });
+      const resEj = await axios.post(
+        'https://vps-5097245-x.dattaweb.com/ejercicios',
+        {
+          bloque_id: bloque.id,
+          nombre: form.nombre.trim(),
+          notas: form.notas || null,
+          orden: Number(form.orden) || 1
+        }
+      );
 
       // tu backend puede devolver { ejercicio: {...} } o directamente el objeto
       const ejercicioId = resEj.data?.ejercicio?.id ?? resEj.data?.id;
@@ -283,7 +290,9 @@ function AgregarEjercicioModal({ open, onClose, bloque, onSaved }) {
       }));
 
       await Promise.all(
-        payloads.map((p) => axios.post('https://vps-5097245-x.dattaweb.com/series', p))
+        payloads.map((p) =>
+          axios.post('https://vps-5097245-x.dattaweb.com/series', p)
+        )
       );
 
       onClose();
@@ -806,7 +815,9 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
     if (!window.confirm(`¿Eliminar el ejercicio "${ej.nombre}" y sus series?`))
       return;
     try {
-      await axios.delete(`https://vps-5097245-x.dattaweb.com/ejercicios/${ej.id}`);
+      await axios.delete(
+        `https://vps-5097245-x.dattaweb.com/ejercicios/${ej.id}`
+      );
       await cargarRutinas();
     } catch (e) {
       console.error(e);
@@ -825,7 +836,9 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
     if (!hasPerms) return;
     if (!window.confirm(`¿Eliminar Serie ${serie.numero_serie}?`)) return;
     try {
-      await axios.delete(`https://vps-5097245-x.dattaweb.com/series/${serie.id}`);
+      await axios.delete(
+        `https://vps-5097245-x.dattaweb.com/series/${serie.id}`
+      );
       await cargarRutinas();
     } catch (e) {
       console.error(e);
@@ -993,7 +1006,7 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
 
   // Bottom Sheet con detalle de ejercicio
   const ExerciseDetailSheet = ({ open, onClose, ej }) => {
-    // Opcional: bloquear el scroll del body mientras está abierto (mejora UX)
+    // Bloquear scroll del body mientras está abierto
     useEffect(() => {
       if (!open) return;
       const prev = document.body.style.overflow;
@@ -1005,12 +1018,16 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
 
     if (!open) return null;
 
-    return (
-      <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+    const content = (
+      <div
+        className="fixed inset-0 z-[120]" // ⬅️ z ALTO para estar encima de todo el layout
+        role="dialog"
+        aria-modal="true"
+      >
         {/* Backdrop */}
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-        {/* Panel: ahora en flex-col con altura máxima controlada */}
+        {/* Panel: bottom sheet */}
         <motion.div
           className="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl flex flex-col"
           style={{ maxHeight: 'min(85svh, 85vh)' }}
@@ -1055,11 +1072,10 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
             </div>
           </div>
 
-          {/* CONTENIDO SCROLLEABLE: flex-1 + min-h-0 + overflow-y-auto */}
+          {/* CONTENIDO SCROLLEABLE */}
           <div
             className="px-5 pb-6 pr-4 flex-1 min-h-0 overflow-y-auto overscroll-contain"
             style={{
-              // dejar aire para la curvatura inferior y barras del SO
               paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)'
             }}
           >
@@ -1081,7 +1097,6 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
                     variants={itemVariants}
                     layout
                   >
-                    {/* …tu contenido de la serie tal cual… */}
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm text-gray-800">
                         <strong>Serie {serie.numero_serie}</strong>
@@ -1157,7 +1172,6 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
               })}
             </motion.ul>
 
-            {/* Espaciador extra por seguridad (que el último item nunca quede tapado) */}
             <div
               style={{ height: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}
             />
@@ -1178,10 +1192,12 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
         </motion.div>
       </div>
     );
+
+    // Esto lo saca del stacking context del card y lo lleva directo al <body>
+    return createPortal(content, document.body);
   };
 
   const ActionSheet = ({ open, onClose, title, actions = [] }) => {
-    // lock scroll del fondo mientras está abierto
     useEffect(() => {
       if (!open) return;
       const prev = document.body.style.overflow;
@@ -1192,10 +1208,12 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
     }, [open]);
 
     if (!open) return null;
-    return (
-      <div className="fixed inset-0 z-50">
+
+    const content = (
+      <div className="fixed inset-0 z-[115]">
         {/* backdrop */}
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+
         {/* sheet */}
         <div className="absolute inset-x-0 bottom-0 max-h-[60vh] rounded-t-3xl bg-white shadow-2xl">
           <div className="pt-2 pb-1 flex justify-center">
@@ -1242,6 +1260,8 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
         </div>
       </div>
     );
+
+    return createPortal(content, document.body);
   };
 
   // Tarjeta compacta de ejercicio (con “Ver mejor”)
