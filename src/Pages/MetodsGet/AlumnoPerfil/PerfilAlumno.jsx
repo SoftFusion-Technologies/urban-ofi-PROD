@@ -369,12 +369,12 @@ function PerfilAlumno() {
             {/* COLUMNA DERECHA: RUTINAS */}
             <div className="flex flex-col gap-6 min-h-0">
               {/* Rutina por bloques */}
-              <div className="flex-1 min-h-[260px] rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg shadow-lg overflow-hidden">
+              <div className="flex-1 min-h-[260px] rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg shadow-lg">
                 <RutinaPorBloques studentId={id} actualizar={recargarRutinas} />
               </div>
 
               {/* Rutina vigente por bloques */}
-              <div className="flex-1 min-h-[260px] rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg shadow-lg overflow-hidden">
+              <div className="flex-1 min-h-[260px] rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg shadow-lg">
                 <RutinaVigentePorBloques
                   studentId={id}
                   actualizar={recargarRutinas}
