@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
-    // localStorage.removeItem('userLevel');
+    localStorage.removeItem('userLevel');
     localStorage.removeItem('nomyape');
     localStorage.removeItem('alumnoId');
   };
@@ -100,9 +100,12 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(token);
     setNomyape(alumnoNombreApellido);
     setAlumnoId(id);
+    setUserLevel('alumno'); // rol explícito
+
     localStorage.setItem('authToken', token);
     localStorage.setItem('nomyape', alumnoNombreApellido);
     localStorage.setItem('alumnoId', id);
+    localStorage.setItem('userLevel', 'alumno'); // persistimos rol
   };
 
   return (

@@ -587,7 +587,7 @@ function buildYouTubeUrl(ej = {}) {
 }
 // componente principal
 const RutinaPorBloques = ({ studentId, actualizar }) => {
-  // 🔹 Ahora trabajamos SIEMPRE con array de rutinas
+  //  Ahora trabajamos SIEMPRE con array de rutinas
   const [rutinas, setRutinas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -625,7 +625,7 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTexto, setModalTexto] = useState('');
   // GLOBALES PARA GESTIONAR LOS MODALES DE ERROR
-  // 🔹 Traer rutinas de HOY
+  //  Traer rutinas de HOY
 
   const [fuenteRutinas, setFuenteRutinas] = useState(null); // 'propias' | 'asignadas' | null
 
@@ -691,7 +691,7 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
       if (propias.length > 0) {
         setRutinas(propias);
         setFuenteRutinas('propias');
-        return; // ✅ Prioridad a propias
+        return; //  Prioridad a propias
       }
 
       // 2) Si no hay propias, probar asignadas de hoy (endpoint nuevo)
@@ -723,7 +723,7 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
     };
   }, [studentId, actualizar]);
 
-  // 🔹 Traer colores (no crítico)
+  //  Traer colores (no crítico)
   useEffect(() => {
     let cancel = false;
     axios
@@ -966,7 +966,7 @@ const RutinaPorBloques = ({ studentId, actualizar }) => {
     }
   };
 
-  // 🔹 Render seguro
+  //  Render seguro
   if (loading) {
     return (
       <div className="p-6 bg-gray-50 rounded-3xl max-w-3xl mx-auto shadow-2xl">
